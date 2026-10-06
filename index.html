@@ -4,21 +4,112 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MidiMate</title>
+<!-- Optimización de red: adelanta DNS+TLS al CDN del soundfont (gleitz.github.io)
+     para que la primera muestra realista llegue más rápido. -->
+<link rel="preconnect" href="https://gleitz.github.io" crossorigin>
+<link rel="dns-prefetch" href="https://gleitz.github.io">
 <style>
   :root{
-    --bg-void:#14121f;
-    --bg-panel:#1c1930;
-    --bg-panel-2:#211d38;
-    --brass:#c9a24b;
-    --brass-soft:#e0bd6d;
-    --ivory:#f2ead9;
-    --ivory-dim:#a89f8f;
-    --ebony:#100e1a;
+    /* ===== TEMA OSCURO — «Piano eléctrico» (Diseño 3) ===== */
+    --bg-void:#151917;
+    --bg-panel:#292F2B;
+    --bg-panel-2:#1c211e;
+    --brass:#EBA347;
+    --brass-soft:#F5C173;
+    --ivory:#EEE9D9;
+    --ivory-dim:#ADB4A9;
+    --ebony:#0C100E;
     --correct:#6fbf73;
-    --wrong:#d9534f;
-    --line:rgba(242,234,217,0.12);
-    --font-display:Georgia,'Times New Roman',serif;
-    --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+    --wrong:#E87868;
+    --line:rgba(238,233,217,0.12);
+    --line-strong:rgba(238,233,217,0.24);
+    --staff-bg:rgba(41,47,43,0.90);
+    --keys-bg:rgba(12,16,14,0.92);
+    --chrome-bg:rgba(21,25,23,0.92);
+    --chrome-bg-soft:rgba(21,25,23,0.72);
+    --sunken:rgba(12,16,14,0.55);
+    --hover-wash:rgba(238,233,217,0.06);
+    --btn-text:#151917;
+    --group-heading:#EFE7D2;
+    --section-heading:#B9B1A0;
+    --radius:10px;
+    --radius-sm:7px;
+    --shadow-card:0 1px 0 rgba(255,255,255,0.05) inset, 0 10px 30px -18px rgba(0,0,0,0.8);
+    --font-display:'Georgia','Iowan Old Style','Times New Roman',serif;
+    --font-body:ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  }
+  /* ===== TEMAS DE LA APP (4 paletas) =====
+     Base :root = «Piano eléctrico» (oscuro, por defecto).
+     Cada tema redefine chrome + texto + acento; los neutros son cálidos
+     (subtono amarillo-marrón, nunca gris azulado) para no cansar la vista. */
+  /* 6 · Noche tinta cálida (oscuro) — de popular-web-designs/claude */
+  body.theme-warmnight{
+    --bg-void:#141413;
+    --bg-panel:#30302e;
+    --bg-panel-2:#1c1c1a;
+    --brass:#d97757;
+    --brass-soft:#e89070;
+    --ivory:#faf9f5;
+    --ivory-dim:#b0aea5;
+    --ebony:#0f0f0e;
+    --line:rgba(250,249,245,0.12);
+    --line-strong:rgba(250,249,245,0.24);
+    --staff-bg:rgba(48,48,46,0.90);
+    --keys-bg:rgba(20,20,19,0.92);
+    --chrome-bg:rgba(20,20,19,0.92);
+    --chrome-bg-soft:rgba(20,20,19,0.72);
+    --sunken:rgba(15,15,14,0.55);
+    --hover-wash:rgba(250,249,245,0.06);
+    --btn-text:#141413;
+    --group-heading:#EFE7D2;
+    --section-heading:#b0aea5;
+    --shadow-card:0 1px 0 rgba(255,255,255,0.05) inset, 0 10px 30px -18px rgba(0,0,0,0.8);
+  }
+  /* 2 · Golden Hour (día) — theme-factory */
+  body.theme-goldenhour{
+    --bg-void:#D4B896;
+    --bg-panel:#E8D9C0;
+    --bg-panel-2:#E8D9C0;
+    --brass:#A84E38;
+    --brass-soft:#C0664A;
+    --ivory:#4A403A;
+    --ivory-dim:#6B5D50;
+    --ebony:#E0CDAE;
+    --line:rgba(74,64,58,0.16);
+    --line-strong:rgba(74,64,58,0.32);
+    --staff-bg:rgba(232,217,192,0.96);
+    --keys-bg:rgba(232,217,192,0.96);
+    --chrome-bg:rgba(232,217,192,0.97);
+    --chrome-bg-soft:rgba(212,184,150,0.90);
+    --sunken:rgba(74,64,58,0.06);
+    --hover-wash:rgba(74,64,58,0.07);
+    --btn-text:#ffffff;
+    --group-heading:#5A4A3E;
+    --section-heading:#6B5D50;
+    --shadow-card:0 1px 0 rgba(255,255,255,0.5) inset, 0 10px 30px -20px rgba(74,64,58,0.3);
+  }
+  /* 4 · Forest Canopy (día) — theme-factory */
+  body.theme-forest{
+    --bg-void:#FAF9F6;
+    --bg-panel:#F0EFE9;
+    --bg-panel-2:#F0EFE9;
+    --brass:#2D4A2B;
+    --brass-soft:#3D5A3A;
+    --ivory:#2D4A2B;
+    --ivory-dim:#7D8471;
+    --ebony:#EDECE4;
+    --line:rgba(45,74,43,0.15);
+    --line-strong:rgba(45,74,43,0.30);
+    --staff-bg:rgba(240,239,233,0.96);
+    --keys-bg:rgba(240,239,233,0.96);
+    --chrome-bg:rgba(240,239,233,0.97);
+    --chrome-bg-soft:rgba(250,249,246,0.90);
+    --sunken:rgba(45,74,43,0.05);
+    --hover-wash:rgba(45,74,43,0.06);
+    --btn-text:#ffffff;
+    --group-heading:#2D4A2B;
+    --section-heading:#5A6B4F;
+    --shadow-card:0 1px 0 rgba(255,255,255,0.7) inset, 0 10px 30px -20px rgba(45,74,43,0.25);
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
@@ -29,43 +120,55 @@
   #bgColorLayer{ position:fixed; inset:0; z-index:-10; pointer-events:none; }
   .bg-media-layer{ position:fixed; inset:0; pointer-events:none; overflow:hidden; }
   .bg-media-layer img, .bg-media-layer video{
-    position:absolute; width:100vw; height:100vh; object-fit:cover; max-width:none; max-height:none;
+    position:absolute; max-width:none; max-height:none; width:auto; height:auto; display:block;
   }
 
   header{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:14px 64px 14px 22px; border-bottom:1px solid var(--line);
-    background:linear-gradient(180deg, rgba(20,18,31,0.9), rgba(20,18,31,0.75));
-    flex-shrink:0; backdrop-filter:blur(2px);
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:12px 64px 12px 20px; border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, var(--chrome-bg), var(--chrome-bg-soft));
+    flex-shrink:0; backdrop-filter:blur(8px);
   }
-  h1{ font-family:var(--font-display); font-size:22px; font-weight:700; margin:0; }
-  h1 .mark{color:var(--brass);}
-  .controls{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  h1{ font-family:var(--font-display); font-size:21px; font-weight:700; margin:0; letter-spacing:.2px; white-space:nowrap; }
+  h1 .mark{color:var(--brass); margin-right:2px;}
+  .controls{display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0;}
   button, select{
     background:var(--bg-panel-2); color:var(--ivory); border:1px solid var(--line);
-    border-radius:8px; padding:8px 14px; font-family:var(--font-body); font-size:13px;
-    font-weight:500; cursor:pointer; transition:border-color .15s;
+    border-radius:var(--radius-sm); padding:8px 14px; font-family:var(--font-body); font-size:13px;
+    font-weight:500; cursor:pointer; transition:border-color .15s, background .15s, color .15s;
   }
-  button:hover, select:hover{border-color:var(--brass);}
-  button.primary{background:var(--brass); color:#241a08; border-color:var(--brass); font-weight:600;}
-  button.primary:hover{background:var(--brass-soft);}
-  button:disabled{opacity:.4; cursor:not-allowed;}
+  button:hover, select:hover{border-color:var(--line-strong);}
+  button:focus-visible, select:focus-visible{outline:2px solid var(--brass); outline-offset:1px;}
+  button.primary{background:var(--brass); color:var(--btn-text); border-color:var(--brass); font-weight:600; box-shadow:0 6px 18px -8px rgba(235,163,71,0.7);}
+  button.primary:hover{background:var(--brass-soft); border-color:var(--brass-soft);}
+  button:disabled{opacity:.35; cursor:not-allowed;}
   .icon-square{
     width:38px; height:38px; padding:0; display:flex; align-items:center; justify-content:center;
-    font-size:16px;
+    font-size:15px; line-height:1;
   }
-  .icon-square.active-toggle{border-color:var(--brass); color:var(--brass-soft); background:rgba(201,162,75,0.15);}
+  .icon-square.active-toggle{border-color:var(--brass); color:var(--brass-soft); background:rgba(201,162,75,0.14);}
+  /* agrupación de transporte: una píldora compacta con los botones pegados */
+  .transport{display:flex; align-items:center; gap:2px; background:var(--sunken);
+    border:1px solid var(--line); border-radius:var(--radius); padding:3px;}
+  .transport .icon-square{border:none; background:transparent; width:34px; height:32px; border-radius:6px;}
+  .transport .icon-square:hover{background:var(--hover-wash);}
+  .transport .icon-square.primary{background:var(--brass); color:var(--btn-text);}
+  .transport .icon-square.primary:hover{background:var(--brass-soft);}
+  .controls .sep{width:1px; height:24px; background:var(--line); margin:0 2px; flex-shrink:0;}
   label.chip{
     display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ivory-dim);
-    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:8px; padding:6px 10px;
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:6px 10px;
   }
+  label.chip span{white-space:nowrap;}
   input[type=range]{accent-color:var(--brass);}
+  input[type=number]{background:var(--sunken); color:var(--ivory); border:1px solid var(--line);
+    border-radius:6px; padding:3px 5px; font-family:var(--font-body); font-size:12px;}
   input[type=color]{width:34px; height:28px; border:1px solid var(--line); border-radius:6px; background:none; padding:0; cursor:pointer;}
 
   main{flex:1; display:flex; flex-direction:column; min-height:0; position:relative;}
 
   #staffWrap{
-    flex-shrink:0; height:280px; background:rgba(28,25,48,0.88);
+    flex-shrink:0; height:280px; background:var(--staff-bg);
     border-bottom:1px solid var(--line); position:relative;
     transition:opacity .25s ease;
   }
@@ -86,10 +189,10 @@
   #rollCanvas{width:100%; height:100%; display:block;}
 
   #keysWrap{
-    flex-shrink:0; height:150px; background:rgba(16,14,26,0.92);
+    flex-shrink:0; height:150px; background:var(--keys-bg);
     border-top:1px solid var(--line); position:relative;
   }
-  #keysCanvas{width:100%; height:100%; display:block; cursor:pointer;}
+  #keysCanvas{width:100%; height:100%; display:block; cursor:pointer; touch-action:none;}
 
   /* Ícono de ajustes — fijo arriba a la derecha, siempre visible (incluso en modo limpio) */
   #floatSettings{
@@ -103,7 +206,7 @@
 
   #drawer{
     position:fixed; inset:0; width:100%;
-    background:rgba(20,18,31,0.99); border-left:none;
+    background:var(--chrome-bg); border-left:none;
     transform:translateX(100%); transition:transform .25s ease, width .2s ease;
     z-index:40; padding:28px; overflow-y:auto;
   }
@@ -117,47 +220,44 @@
     width:38px; height:38px; border-radius:8px; font-size:19px;
   }
   #drawer h2{
-    font-family:var(--font-display); font-size:16px; margin:18px 0 10px;
-    color:var(--brass-soft); border-bottom:1px solid var(--line); padding-bottom:8px;
+    font-family:var(--font-body); font-size:11px; font-weight:700; letter-spacing:.12em;
+    text-transform:uppercase; margin:18px 0 8px;
+    color:var(--section-heading); border-bottom:1px solid var(--line); padding-bottom:7px;
   }
   #drawer h2:first-child{margin-top:0;}
   .settings-group{
-    break-inside:avoid; margin-bottom:14px; border:1px solid var(--line); border-radius:10px;
-    overflow:hidden; background:rgba(16,14,26,0.25);
+    break-inside:avoid; margin-bottom:12px; border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; background:var(--sunken); box-shadow:var(--shadow-card);
   }
   .group-header{
     width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px;
-    background:rgba(201,162,75,0.08); border:none; border-radius:0;
-    padding:12px 16px; font-family:var(--font-display); font-size:22.5px; color:var(--brass-soft);
+    background:rgba(201,162,75,0.06); border:none; border-radius:0;
+    padding:12px 16px; font-family:var(--font-display); font-size:22.5px; color:var(--group-heading);
     cursor:pointer; text-align:left;
+    /* contorno sutil para que las palabras se noten sobre cualquier fondo */
+    text-shadow:0 1px 2px rgba(0,0,0,0.35), 0 0 1px rgba(0,0,0,0.25);
   }
-  .group-header .group-icon{font-size:0.75em; flex-shrink:0;}
-  .group-header:hover{background:rgba(201,162,75,0.16);}
-  .group-chevron{transition:transform .2s ease; font-size:13px; margin-left:auto;}
+  .group-header .group-icon{font-size:0.75em; flex-shrink:0; opacity:.75;}
+  .group-header:hover{background:rgba(201,162,75,0.14);}
+  .group-chevron{transition:transform .2s ease; font-size:13px; margin-left:auto; color:var(--ivory-dim);}
   .settings-group.open .group-chevron{transform:rotate(90deg);}
   .group-body{
     max-height:0; overflow:hidden; transition:max-height .25s ease;
     padding:0 16px;
   }
-  .settings-group[data-group="background"] .group-header{ background:rgba(63,167,201,0.1); color:#6fc9e0; }
-  .settings-group[data-group="background"] .group-header:hover{ background:rgba(63,167,201,0.2); }
-  .settings-group[data-group="appearance"] .group-header{ background:rgba(201,107,154,0.1); color:#e08fc0; }
-  .settings-group[data-group="appearance"] .group-header:hover{ background:rgba(201,107,154,0.2); }
-  .settings-group[data-group="buttons"] .group-header{ background:rgba(78,201,143,0.1); color:#7de0ae; }
-  .settings-group[data-group="buttons"] .group-header:hover{ background:rgba(78,201,143,0.2); }
-  .settings-group[data-group="audio"] .group-header{ background:rgba(219,112,47,0.12); color:#f0a868; }
-  .settings-group[data-group="audio"] .group-header:hover{ background:rgba(219,112,47,0.22); }
-  .settings-group.open .group-body{ max-height:4000px; padding:6px 16px 16px; }
-  .group-body h2{ font-size:14px; margin:16px 0 8px; }
+  /* todos los grupos comparten el mismo encabezado crema (sin arcoíris) */
+  .settings-group.open .group-body{ max-height:4000px; padding:6px 16px 16px; border-top:1px solid var(--line); }
+  .group-body h2{ font-size:11px; margin:16px 0 8px; }
   .group-body h2:first-child{ margin-top:4px; }
   body.layout-sidebar #drawerInner{ columns:1; }
   body:not(.layout-sidebar) #drawerInner{ column-width:380px; column-gap:20px; max-width:none; width:100%; }
   .flag-row{
     display:flex; align-items:center; justify-content:space-between;
-    padding:9px 0; border-bottom:1px solid var(--line); gap:10px;
+    padding:10px 0; border-bottom:1px solid var(--line); gap:12px;
   }
-  .flag-row .label{font-size:13px;}
-  .flag-row .desc{font-size:11px; color:var(--ivory-dim); margin-top:2px;}
+  .flag-row:last-child{border-bottom:none;}
+  .flag-row .label{font-size:12.5px; color:var(--ivory);}
+  .flag-row .desc{font-size:11px; color:var(--ivory-dim); margin-top:3px; line-height:1.4;}
   .icon-btn{
     background:none; border:none; color:var(--ivory-dim); font-size:15px;
     cursor:pointer; padding:2px 4px; border-radius:4px;
@@ -185,12 +285,13 @@
   #keymapList{max-height:320px; overflow-y:auto; margin-top:6px; display:grid; grid-template-columns:repeat(auto-fill, minmax(78px,1fr)); gap:6px;}
   .keymap-row{
     display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 4px;
-    font-size:11px; border:1px solid var(--line); border-radius:6px; background:rgba(16,14,26,0.3);
+    font-size:11px; border:1px solid var(--line); border-radius:6px; background:var(--sunken);
   }
   .keymap-row.unmapped{opacity:.55;}
   .keymap-row .key-badge{
-    background:var(--bg-panel-2); border:1px solid var(--brass); border-radius:5px;
-    padding:2px 8px; font-family:monospace; min-width:22px; text-align:center;
+    background:var(--bg-panel-2); border:1px solid var(--line-strong); border-radius:5px;
+    padding:2px 8px; font-family:ui-monospace,'SFMono-Regular',Menlo,monospace; min-width:22px; text-align:center;
+    font-weight:700; color:var(--ivory);
   }
   .keymap-row .key-badge.listening{background:var(--brass); color:#241a08; animation:pulse 1s infinite;}
   @keyframes pulse{50%{opacity:.5;}}
@@ -206,16 +307,17 @@
   }
 
   #modeBar{
-    display:flex; gap:0; flex-shrink:0; background:rgba(16,14,26,0.7);
-    border-bottom:1px solid var(--line);
+    display:flex; gap:6px; flex-shrink:0; background:var(--sunken);
+    border-bottom:1px solid var(--line); padding:5px 8px;
   }
   .mode-btn{
-    flex:1; background:none; border:none; border-radius:0; color:var(--ivory-dim);
-    padding:8px 6px; font-size:12px; display:flex; align-items:center; justify-content:center; gap:6px;
-    cursor:pointer; border-bottom:2px solid transparent;
+    flex:1; background:transparent; border:1px solid transparent; border-radius:var(--radius-sm);
+    color:var(--ivory-dim);
+    padding:7px 6px; font-size:12px; font-weight:500; display:flex; align-items:center; justify-content:center; gap:7px;
+    cursor:pointer;
   }
-  .mode-btn:hover{color:var(--ivory);}
-  .mode-btn.active-mode{color:var(--brass-soft); border-bottom-color:var(--brass); background:rgba(201,162,75,0.08);}
+  .mode-btn:hover{color:var(--ivory); background:var(--hover-wash);}
+  .mode-btn.active-mode{color:var(--brass-soft); border-color:var(--brass); background:rgba(201,162,75,0.12);}
   .mode-icon{font-size:14px;}
 
   #countInOverlay{
@@ -258,14 +360,14 @@
   #modePromptCard button{flex:1;}
 
   #progressWrap{
-    position:relative; height:20px; flex-shrink:0; background:rgba(16,14,26,0.9);
+    position:relative; height:18px; flex-shrink:0; background:var(--sunken);
     border-bottom:1px solid var(--line); cursor:pointer; display:flex; align-items:center;
-    padding:0 10px;
+    padding:0 10px; touch-action:none;
   }
   #progressWrap.hidden{display:none;}
-  #progressFill{position:absolute; left:0; top:0; bottom:0; background:rgba(201,162,75,0.35); width:0%; pointer-events:none;}
-  #progressHandle{position:absolute; top:0; bottom:0; width:3px; border-radius:0; background:var(--brass-soft); transform:translateX(-50%); left:0%; pointer-events:none;}
-  #timeRemaining{position:relative; margin-left:auto; font-size:11px; color:var(--ivory-dim); z-index:1;}
+  #progressFill{position:absolute; left:0; top:0; bottom:0; background:linear-gradient(90deg, rgba(201,162,75,0.28), rgba(201,162,75,0.45)); width:0%; pointer-events:none;}
+  #progressHandle{position:absolute; top:0; bottom:0; width:2px; border-radius:0; background:var(--brass-soft); transform:translateX(-50%); left:0%; pointer-events:none; box-shadow:0 0 10px rgba(230,199,120,0.7);}
+  #timeRemaining{position:relative; margin-left:auto; font-size:11px; color:var(--ivory-dim); z-index:1; font-variant-numeric:tabular-nums;}
 
   body.hide-cursor, body.hide-cursor *{ cursor:none !important; }
   body.drag-over::after{
@@ -275,14 +377,78 @@
 
   #toast{
     position:fixed; top:64px; left:50%; transform:translate(-50%,-8px);
-    background:rgba(28,25,48,0.94); border:1px solid var(--line); color:var(--ivory);
-    padding:8px 18px; border-radius:8px; font-size:13px; opacity:0; pointer-events:none;
+    background:var(--chrome-bg); border:1px solid var(--line-strong); color:var(--ivory);
+    padding:9px 18px; border-radius:var(--radius); font-size:13px; opacity:0; pointer-events:none;
     transition:opacity .25s, transform .25s; z-index:60; max-width:70vw; text-align:center;
+    box-shadow:0 16px 40px -20px rgba(0,0,0,0.9);
   }
   #toast.show{opacity:1; transform:translate(-50%,0);}
 
   body.obs-clean header{display:none !important;}
   body.layout-sidebar:has(#drawer.open) header{ padding-right:398px; }
+
+  /* ---------------------------------------------------------
+     Reproductor minimizado (PiP) — ventana compacta flotante
+  --------------------------------------------------------- */
+  #miniPlayer{
+    position:fixed; z-index:75; display:none; flex-direction:column;
+    width:264px; border-radius:14px; overflow:hidden;
+    background:var(--chrome-bg); border:1px solid var(--line-strong);
+    box-shadow:0 24px 60px -18px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.05) inset;
+    backdrop-filter:blur(12px); user-select:none;
+  }
+  body.mini-on #miniPlayer{display:flex;}
+  body.mini-on header, body.mini-on #modeBar, body.mini-on #progressWrap, body.mini-on main{display:none !important;}
+  #miniPlayer .mini-head{
+    display:flex; align-items:center; gap:8px; padding:10px 12px;
+    border-bottom:1px solid var(--line); cursor:move;
+    background:linear-gradient(180deg, rgba(201,162,75,0.10), rgba(201,162,75,0.02));
+  }
+  #miniPlayer .mini-dot{width:8px; height:8px; border-radius:50%; background:var(--brass); flex-shrink:0; box-shadow:0 0 8px rgba(201,162,75,0.8);}
+  #miniPlayer .mini-dot.paused{background:var(--ivory-dim); box-shadow:none;}
+  #miniTitle{
+    flex:1; min-width:0; font-size:12px; font-weight:600; color:var(--ivory);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  #miniPlayer .mini-x{
+    width:24px; height:24px; padding:0; border-radius:6px; border:1px solid var(--line);
+    background:transparent; color:var(--ivory-dim); font-size:13px; line-height:1; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #miniPlayer .mini-x:hover{color:var(--ivory); border-color:var(--line-strong);}
+  #miniPlayer .mini-body{padding:12px 14px 14px;}
+  #miniTime{
+    font-family:ui-monospace,'SFMono-Regular',Menlo,monospace; font-size:11px; color:var(--ivory-dim);
+    font-variant-numeric:tabular-nums; text-align:right; margin-bottom:8px;
+  }
+  #miniBar{position:relative; height:5px; border-radius:3px; background:var(--line); margin-bottom:12px; overflow:hidden;}
+  #miniBarFill{position:absolute; inset:0 auto 0 0; width:0%; background:var(--brass);}
+  #miniControls{display:flex; align-items:center; justify-content:center; gap:6px;}
+  #miniControls .icon-square{width:36px; height:34px; border-radius:8px; border:none; background:transparent;}
+  #miniControls .icon-square:hover{background:rgba(244,239,227,0.07);}
+  #miniControls .icon-square.primary{background:var(--brass); color:#241a08;}
+  #miniControls .icon-square.primary:hover{background:var(--brass-soft);}
+
+  /* indicador de precarga del sonido realista */
+  #preloadIndicator{
+    position:fixed; top:64px; left:50%; transform:translateX(-50%); z-index:62;
+    display:none; align-items:center; gap:9px; max-width:min(80vw,420px);
+    background:var(--chrome-bg); border:1px solid var(--line-strong); color:var(--ivory);
+    padding:9px 15px; border-radius:var(--radius); font-size:12.5px;
+    box-shadow:0 16px 40px -20px rgba(0,0,0,0.9);
+  }
+  #preloadIndicator.show{display:flex;}
+  #preloadSpinner{
+    width:14px; height:14px; border-radius:50%; flex-shrink:0;
+    border:2px solid rgba(244,239,227,0.22); border-top-color:var(--brass);
+    animation:preloadSpin .7s linear infinite;
+  }
+  #preloadIndicator.done #preloadSpinner{
+    border:none; animation:none; background:var(--correct);
+    -webkit-mask:none; mask:none;
+  }
+  @keyframes preloadSpin{to{transform:rotate(360deg);}}
+  #preloadText{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
 </style>
 </head>
 <body>
@@ -296,16 +462,21 @@
   <h1><span class="mark">♪</span><span id="logoLabel"></span></h1>
   <div class="controls" id="headerControls">
     <input type="file" id="midiFile" accept=".mid,.midi" style="display:none" multiple>
-    <button id="btnPlaylistPrev" class="icon-square" data-ctrl="playlistPrev" title="Pista anterior" disabled>⏮</button>
-    <button id="btnPlaylistNext" class="icon-square" data-ctrl="playlistNext" title="Siguiente pista" disabled>⏭</button>
-    <button id="btnRewind" class="icon-square" data-ctrl="transport" title="-5s" disabled>⏪</button>
-    <button id="btnPlay" class="primary icon-square" data-ctrl="play" disabled>▶</button>
-    <button id="btnStop" class="icon-square" data-ctrl="transport" title="Stop" disabled>⏹</button>
-    <button id="btnForward" class="icon-square" data-ctrl="transport" title="+5s" disabled>⏩</button>
-    <button id="btnLoop" class="icon-square" data-ctrl="loop" title="Loop">🔁</button>
+    <div class="transport">
+      <button id="btnPlaylistPrev" class="icon-square" data-ctrl="playlistPrev" title="Pista anterior" disabled>⏮</button>
+      <button id="btnRewind" class="icon-square" data-ctrl="transport" title="-5s" disabled>⏪</button>
+      <button id="btnPlay" class="primary icon-square" data-ctrl="play" disabled>▶</button>
+      <button id="btnStop" class="icon-square" data-ctrl="transport" title="Stop" disabled>⏹</button>
+      <button id="btnForward" class="icon-square" data-ctrl="transport" title="+5s" disabled>⏩</button>
+      <button id="btnPlaylistNext" class="icon-square" data-ctrl="playlistNext" title="Siguiente pista" disabled>⏭</button>
+      <button id="btnLoop" class="icon-square" data-ctrl="loop" title="Loop">🔁</button>
+    </div>
+    <span class="sep"></span>
     <select id="midiIn" data-ctrl="midiIn" title="MIDI"><option value="" data-i18n="noMidiDevice">No MIDI device</option></select>
     <label class="chip" data-ctrl="tempo"><span data-i18n="speed">Velocity</span> <input type="range" id="tempo" min="25" max="300" value="100"> <input type="number" id="tempoNum" min="25" max="300" value="100" style="width:54px;">%</label>
     <label class="chip" data-ctrl="volume"><span id="volIcon">🔊</span> <input type="range" id="volume" min="0" max="300" value="80"> <input type="number" id="volumeNum" min="0" max="300" value="80" style="width:52px;">%</label>
+    <span class="sep"></span>
+    <button id="btnMini" class="icon-square" title="Minimizar reproductor">🗕</button>
     <button id="btnFullscreen" class="icon-square" data-ctrl="fullscreen" title="Fullscreen">⛶</button>
   </div>
 </header>
@@ -331,6 +502,24 @@
 </main>
 
 <div id="toast"></div>
+<div id="preloadIndicator"><span id="preloadSpinner"></span><span id="preloadText"></span></div>
+<div id="miniPlayer">
+  <div class="mini-head" id="miniHead">
+    <span class="mini-dot" id="miniDot"></span>
+    <span id="miniTitle">—</span>
+    <button class="mini-x" id="miniRestore" title="Restaurar">⤢</button>
+  </div>
+  <div class="mini-body">
+    <div id="miniTime">0:00 / 0:00</div>
+    <div id="miniBar"><div id="miniBarFill"></div></div>
+    <div id="miniControls">
+      <button class="icon-square" id="miniRewind" title="-5s">⏪</button>
+      <button class="icon-square primary" id="miniPlay" title="Play/Pause">▶</button>
+      <button class="icon-square" id="miniForward" title="+5s">⏩</button>
+      <button class="icon-square" id="miniStop" title="Stop">⏹</button>
+    </div>
+  </div>
+</div>
 <div id="floatSettings" title="Settings">⚙</div>
 
 <div id="modePromptModal">
@@ -365,6 +554,15 @@
     </select>
   </div>
   <div class="subtle-field">
+    <span data-i18n="themeLabel">Tema de la app</span>
+    <select id="themeSelect">
+      <option value="electric" data-i18n="themeElectric">Piano eléctrico (oscuro)</option>
+      <option value="warmnight" data-i18n="themeWarmnight">Noche cálida (oscuro)</option>
+      <option value="goldenhour" data-i18n="themeGoldenhour">Golden Hour (claro)</option>
+      <option value="forest" data-i18n="themeForest">Forest Canopy (claro)</option>
+    </select>
+  </div>
+  <div class="subtle-field">
     <span data-i18n="toastDuration">Notice duration (seconds)</span>
     <input type="range" id="toastDurationInput" min="1" max="15" value="5">
     <span class="value" id="toastDurationVal">5s</span>
@@ -396,6 +594,15 @@
   <div class="flag-row">
     <div class="label" data-i18n="countInAudio">Sound during countdown</div>
     <label class="switch"><input type="checkbox" id="countInAudio"><span class="slider"></span></label>
+  </div>
+
+  <h2 data-i18n="sectionMini">Reproductor minimizado</h2>
+  <div class="flag-row">
+    <div>
+      <div class="label" data-i18n="miniKeepPlayingLabel">Seguir reproduciendo al minimizar</div>
+      <div class="desc" data-i18n="miniKeepPlayingDesc">Activado: la música sigue sonando en la ventana pequeña. Desactivado: al minimizar se pausa.</div>
+    </div>
+    <label class="switch"><input type="checkbox" id="miniKeepPlaying"><span class="slider"></span></label>
   </div>
 
   <h2 data-i18n="sectionAnnounce">Center notice</h2>
@@ -445,6 +652,13 @@
     <input type="color" id="bgColorInput" value="#14121f">
   </div>
   <div style="font-size:11px; color:var(--ivory-dim); margin:6px 0;" data-i18n="bgLayersHint">Up to 3 simultaneous layers (image, GIF, or video). Files shorter than the song loop. You can move them freely, without needing them to fit in the corners.</div>
+  <div class="flag-row">
+    <div>
+      <div class="label" data-i18n="fitImageLabel">Ajustar imagen al cargar</div>
+      <div class="desc" data-i18n="fitImageDesc">Al subir una imagen la encaja completa en la pantalla (sin recortarla) y la centra. Después puedes moverla y hacer zoom libremente.</div>
+    </div>
+    <label class="switch"><input type="checkbox" id="fitImageOnLoad"><span class="slider"></span></label>
+  </div>
   <div id="bgLayersPanel"></div>
   <div class="subtle-field">
     <button id="btnHarmonize" data-i18n="harmonizeBtn">Blend colors with the image</button>
@@ -697,6 +911,7 @@ const TEXT = {
     mutedToast:"Silenciado (M para restaurar)", unmutedToast:"Volumen restaurado",
     volumeWarning:"Volumen por encima de 250% — riesgo de distorsión/daño auditivo",
     sectionGeneral:"General", drawerLayoutLabel:"Diseño de la pantalla de ajustes", layoutFullscreen:"Pantalla completa", layoutSidebar:"Panel lateral",
+    themeLabel:"Tema de la app", themeElectric:"Piano eléctrico (oscuro)", themeWarmnight:"Noche cálida (oscuro)", themeGoldenhour:"Golden Hour (claro)", themeForest:"Forest Canopy (claro)",
     language:"Idioma", toastDuration:"Duración del aviso (segundos)",
     sectionAnnounce:"Aviso central", announceEnable:"Mostrar aviso al cargar un MIDI",
     announceTextLabel:"Texto (vacío = nombre del archivo)", announceFontLabel:"Fuente",
@@ -776,7 +991,19 @@ const TEXT = {
     trackLabel:"Pista", trackMute:"Silenciar", trackAuto:"Auto-reproducir", trackVisible:"Mostrar en partitura/notas", trackDisable:"Desactivar pista", noTracksYet:"Carga un MIDI para ver sus pistas.",
     watchModeAutoNote:"En modo Ver todas las pistas se auto-reproducen siempre — este interruptor solo aplica en modo Practicar.",
     modeFree:"Libre", modeWatch:"Ver", modePractice:"Practicar", freeModeLabel:"Modo libre",
-    modePromptTitle:"¿Cómo quieres usar este MIDI?"
+    modePromptTitle:"¿Cómo quieres usar este MIDI?",
+    sectionMini:"Reproductor minimizado",
+    miniKeepPlayingLabel:"Seguir reproduciendo al minimizar",
+    miniKeepPlayingDesc:"Activado: la música sigue sonando en la ventana pequeña. Desactivado: al minimizar se pausa.",
+    miniRestore:"Restaurar",
+    miniMinimize:"Minimizar reproductor",
+    fitImageLabel:"Ajustar imagen al cargar",
+    fitImageDesc:"Al subir una imagen la encaja completa en la pantalla (sin recortarla) y la centra. Después puedes moverla y hacer zoom libremente.",
+    preloadTitle:"Preparando sonido realista…",
+    preloadProgress:"Cargando sonido realista {done}/{total}",
+    preloadDone:"Sonido realista listo",
+    preloadPartial:"Sonido realista listo ({done}/{total}; el resto usa el sintetizador)",
+    preloadSkipped:"Sin internet: se usará el sintetizador mientras se cargan las muestras"
   },
   en: {
     loadBtn:"Load MIDI", play:"▶ Play", pause:"⏸ Pause", practice:"▶ Practice",
@@ -789,6 +1016,7 @@ const TEXT = {
     mutedToast:"Muted (press M to restore)", unmutedToast:"Volume restored",
     volumeWarning:"Volume above 250% — risk of distortion/hearing damage",
     sectionGeneral:"General", drawerLayoutLabel:"Settings screen layout", layoutFullscreen:"Fullscreen", layoutSidebar:"Sidebar panel",
+    themeLabel:"App theme", themeElectric:"Electric piano (dark)", themeWarmnight:"Warm night (dark)", themeGoldenhour:"Golden Hour (light)", themeForest:"Forest Canopy (light)",
     language:"Language", toastDuration:"Notice duration (seconds)",
     sectionAnnounce:"Center announcement", announceEnable:"Show announcement when loading a MIDI",
     announceTextLabel:"Text (empty = file name)", announceFontLabel:"Font",
@@ -868,7 +1096,19 @@ const TEXT = {
     trackLabel:"Track", trackMute:"Mute", trackAuto:"Auto-play", trackVisible:"Show in staff/falling notes", trackDisable:"Disable track", noTracksYet:"Load a MIDI file to see its tracks.",
     watchModeAutoNote:"In Watch mode every track always auto-plays — this switch only applies in Practice mode.",
     modeFree:"Free", modeWatch:"Watch", modePractice:"Practice", freeModeLabel:"Free mode",
-    modePromptTitle:"How do you want to use this MIDI?"
+    modePromptTitle:"How do you want to use this MIDI?",
+    sectionMini:"Mini player",
+    miniKeepPlayingLabel:"Keep playing when minimized",
+    miniKeepPlayingDesc:"On: the music keeps playing in the small window. Off: minimizing pauses playback.",
+    miniRestore:"Restore",
+    miniMinimize:"Minimize player",
+    fitImageLabel:"Fit image on load",
+    fitImageDesc:"When you upload an image it fits fully on screen (no cropping) and centers it. You can then move and zoom it freely.",
+    preloadTitle:"Preparing realistic sound…",
+    preloadProgress:"Loading realistic sound {done}/{total}",
+    preloadDone:"Realistic sound ready",
+    preloadPartial:"Realistic sound ready ({done}/{total}; the rest uses the synth)",
+    preloadSkipped:"Offline: the synth will be used while samples load"
   }
 };
 function t(key){ return (TEXT[CFG.language] && TEXT[CFG.language][key]) || key; }
@@ -895,20 +1135,21 @@ const DEFAULTS = {
     showNoteNamesOnTiles:{value:false}
   },
   noteNaming:'en', // 'en' | 'latin' | 'de'
+  theme:'electric',   // 'electric' | 'warmnight' | 'goldenhour' | 'forest'
   colorTheme:'brass',
   customTheme:null,
   freeModeDisplay:'text', // 'text' | 'staff'
   countIn:{enabled:true, audio:true},
   mouseHideDelay:2.5,
-  shortcuts:{playPause:'space', mute:'m', seekBack:'arrowleft', seekFwd:'arrowright', fullscreen:'l', sustainToggle:'p', openFile:'o', volUp:']', volDown:'[', obsClean:'k'},
+  shortcuts:{playPause:'space', mute:'m', seekBack:'arrowleft', seekFwd:'arrowright', fullscreen:'l', sustainToggle:'p', openFile:'o', volUp:']', volDown:'[', obsClean:'k', mini:'n'},
   eq:{low:0, mid:0, high:0, preset:'flat'},
   announce:{enabled:true, text:'', font:'display', size:32, color:'#f2ead9'},
-  staffColors:{noteColor:'#f2ead9', bgColor:'#1c1930'},
-  settingsBgColor:'#1c1930',
-  panelColor:'#211d38',
+  staffColors:{noteColor:'#EEE9D9', bgColor:'#292F2B'},
+  settingsBgColor:'#1c211e',
+  panelColor:'#292F2B',
   controlVisibility:{play:true, transport:true, midiIn:true, tempo:true, volume:true, fullscreen:true, loop:true},
   background:{
-    color:'#14121f',
+    color:'#151917',
     layers:[
       {file:null, type:null, x:50, y:50, zoom:100, opacity:0.5, order:'back'},
       {file:null, type:null, x:50, y:50, zoom:100, opacity:0.5, order:'middle'},
@@ -918,6 +1159,8 @@ const DEFAULTS = {
   keySkin:'classic', tileSkin:'classic', keyFxStyle:'flash', harmonizePalette:null,
   bassAmount:0.3,
   realisticAudio:{enabled:false},
+  fitImageOnLoad:true,
+  miniPlayer:{keepPlaying:true},
   visibleKeyCount:'auto',
   staffHeight:280,
   synth:{preset:'piano', sampleDataUrl:null, sampleBaseNote:60},
@@ -954,6 +1197,11 @@ function loadConfig(){
     if (saved.toastDuration) merged.toastDuration = saved.toastDuration;
     if (saved.volume != null) merged.volume = saved.volume;
     if (saved.noteNaming) merged.noteNaming = saved.noteNaming;
+    if (saved.theme){
+      // migración de los temas viejos ('night'/'day') a los nuevos
+      const mig = {night:'electric', day:'forest'};
+      merged.theme = mig[saved.theme] || saved.theme;
+    }
     if (saved.colorTheme) merged.colorTheme = saved.colorTheme;
     if (saved.customTheme) merged.customTheme = saved.customTheme;
     if (saved.freeModeDisplay) merged.freeModeDisplay = saved.freeModeDisplay;
@@ -978,6 +1226,8 @@ function loadConfig(){
     if (saved.harmonizePalette) merged.harmonizePalette = saved.harmonizePalette;
     if (saved.bassAmount!=null) merged.bassAmount = saved.bassAmount;
     Object.assign(merged.realisticAudio, saved.realisticAudio||{});
+    if (saved.fitImageOnLoad!=null) merged.fitImageOnLoad = saved.fitImageOnLoad;
+    Object.assign(merged.miniPlayer, saved.miniPlayer||{});
     if (saved.visibleKeyCount) merged.visibleKeyCount = saved.visibleKeyCount;
     if (saved.staffHeight) merged.staffHeight = saved.staffHeight;
     if (saved.keyFxStyle) merged.keyFxStyle = saved.keyFxStyle;
@@ -1186,12 +1436,47 @@ function applyBgLayer(idx){
     el.addEventListener('canplay', ()=> el.play().catch(()=>{}));
   } else {
     el = document.createElement('img');
+    // optimización: decodificación fuera del hilo principal y baja prioridad
+    // (las capas de fondo no deben competir con la carga de muestras de audio)
+    el.loading = 'lazy';
+    el.decoding = 'async';
+    if ('fetchPriority' in el) el.fetchPriority = 'low';
     el.src = layer.file;
   }
   el.style.left = layer.x + '%';
   el.style.top = layer.y + '%';
+  el.style.width = 'auto'; el.style.height = 'auto';
+  el.style.maxWidth = 'none'; el.style.maxHeight = 'none';
   el.style.transform = `translate(-50%,-50%) scale(${layer.zoom/100})`;
   container.appendChild(el);
+}
+/* encaja la capa completa dentro de la pantalla (sin recortar) y la centra.
+   Devuelve el zoom que hace que quepa entera (nunca la recorta). */
+function computeFitZoom(w, h){
+  if (!w || !h) return 100;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const fit = Math.min(vw/w, vh/h) * 100;
+  return Math.max(10, Math.min(300, Math.round(fit)));
+}
+function fitLayerToViewport(idx, done){
+  const L = CFG.background.layers[idx];
+  if (!L || !L.file) { if (done) done(); return; }
+  const finish = (w, h)=>{
+    L.zoom = computeFitZoom(w, h);
+    L.x = 50; L.y = 50;
+    if (done) done();
+  };
+  if (L.type === 'video'){
+    const v = document.createElement('video');
+    v.src = L.file;
+    v.addEventListener('loadedmetadata', ()=> finish(v.videoWidth, v.videoHeight));
+    v.addEventListener('error', ()=> finish(0,0));
+  } else {
+    const im = new Image();
+    im.onload = ()=> finish(im.naturalWidth, im.naturalHeight);
+    im.onerror = ()=> finish(0,0);
+    im.src = L.file;
+  }
 }
 function findHarmonizeSource(){
   const withImage = CFG.background.layers.find(l=> l.file && l.type!=='video');
@@ -1266,9 +1551,12 @@ document.getElementById('countInAudio').addEventListener('change', e=>{
 });
 
 
-/* temas de color — afectan el acento de la interfaz y los colores de las notas cayendo */
+/* temas de color — afectan el acento de la interfaz y los colores de las notas cayendo. */
 const THEMES = {
-  brass:  {accent:'#c9a24b', accentSoft:'#e0bd6d', noteWhite:'127,179,213', noteBlack:'201,162,75', played:'111,191,115'},
+  brass:  {accent:'#EBA347', accentSoft:'#F5C173', noteWhite:'131,190,176', noteBlack:'235,163,71', played:'150,210,160'},
+  warmnight:{accent:'#d97757', accentSoft:'#e89070', noteWhite:'176,174,165', noteBlack:'217,119,87', played:'138,168,120'},
+  goldenhour:{accent:'#A84E38', accentSoft:'#C0664A', noteWhite:'74,64,58', noteBlack:'168,78,56', played:'77,110,60'},
+  forest:{accent:'#2D4A2B', accentSoft:'#3D5A3A', noteWhite:'45,74,43', noteBlack:'125,132,113', played:'100,140,90'},
   ocean:  {accent:'#3fa7c9', accentSoft:'#6fc9e0', noteWhite:'111,180,230', noteBlack:'63,167,201',  played:'111,220,191'},
   rose:   {accent:'#c96b9a', accentSoft:'#e08fc0', noteWhite:'201,140,220', noteBlack:'201,107,154', played:'201,150,180'},
   emerald:{accent:'#4ec98f', accentSoft:'#7de0ae', noteWhite:'120,200,170', noteBlack:'78,201,143',  played:'180,220,120'},
@@ -1279,12 +1567,59 @@ const CHROMA_COLORS = [
   '255,99,71','255,165,0','255,215,0','154,205,50','60,179,113','32,178,170',
   '30,144,255','65,105,225','138,43,226','186,85,211','219,112,147','255,105,180'
 ];
-function currentTheme(){ return THEMES[CFG.colorTheme] || THEMES.brass; }
+/* Cada tema de app define: si es claro, su clase CSS, su paleta de acento y sus colores base. */
+const APP_THEMES = {
+  electric:   {day:false, cls:'',                accent:'brass'},
+  warmnight:  {day:false, cls:'theme-warmnight', accent:'warmnight'},
+  goldenhour: {day:true,  cls:'theme-goldenhour',accent:'goldenhour'},
+  forest:     {day:true,  cls:'theme-forest',    accent:'forest'}
+};
+function isDayTheme(){ const t = APP_THEMES[CFG.theme]; return !!(t && t.day); }
+function currentTheme(){
+  const t = APP_THEMES[CFG.theme];
+  if (t && t.accent) return THEMES[t.accent] || THEMES.brass;
+  return THEMES[CFG.colorTheme] || THEMES.brass;
+}
 function applyColorTheme(){
   const th = currentTheme();
   document.documentElement.style.setProperty('--brass', th.accent);
   document.documentElement.style.setProperty('--brass-soft', th.accentSoft);
 }
+/* paleta por tema: fondo base, partitura, panel y color de las teclas blancas. */
+function themePalette(){
+  switch (CFG.theme){
+    case 'warmnight':  return {bg:'#141413', panel:'#30302e', staffBg:'#30302e', staffNote:'#faf9f5', settingsBg:'#1c1c1a', keyWhite:'#f2ead9'};
+    case 'goldenhour': return {bg:'#D4B896', panel:'#E8D9C0', staffBg:'#E8D9C0', staffNote:'#4A403A', settingsBg:'#E8D9C0', keyWhite:'#EFE4D0'};
+    case 'forest':     return {bg:'#FAF9F6', panel:'#F0EFE9', staffBg:'#F0EFE9', staffNote:'#2D4A2B', settingsBg:'#F0EFE9', keyWhite:'#FAF9F6'};
+    default:           return {bg:'#151917', panel:'#292F2B', staffBg:'#292F2B', staffNote:'#EEE9D9', settingsBg:'#1c211e', keyWhite:'#f2ead9'};
+  }
+}
+/* al cambiar de tema se aplica la paleta completa (fondo, partitura, acento) */
+function applyThemePalette(){
+  const p = themePalette();
+  CFG.background.color = p.bg;
+  CFG.staffColors.bgColor = p.staffBg;
+  CFG.staffColors.noteColor = p.staffNote;
+  CFG.panelColor = p.panel;
+  CFG.settingsBgColor = p.settingsBg;
+  const set = (id,v)=>{ const el=document.getElementById(id); if(el) el.value=v; };
+  set('bgColorInput', p.bg); set('staffBgColorInput', p.staffBg);
+  set('staffNoteColorInput', p.staffNote); set('panelColorInput', p.panel);
+  set('settingsBgColorInput', p.settingsBg);
+  applyBackground(); applyPanelColor(); applySettingsBg(); applyColorTheme();
+}
+function applyTheme(applyPalette){
+  const t = APP_THEMES[CFG.theme] || APP_THEMES.electric;
+  // quita cualquier clase de tema previa y pone la actual
+  document.body.classList.remove('theme-warmnight','theme-goldenhour','theme-forest');
+  if (t.cls) document.body.classList.add(t.cls);
+  if (applyPalette) applyThemePalette(); else applyColorTheme();
+}
+document.getElementById('themeSelect').addEventListener('change', e=>{
+  CFG.theme = e.target.value;
+  applyTheme(true);
+  saveConfig();
+});
 document.getElementById('colorThemeSelect').addEventListener('change', e=>{
   CFG.colorTheme = e.target.value; applyColorTheme(); saveConfig();
 });
@@ -1340,7 +1675,12 @@ function buildBgLayersPanel(){
       reader.onload = ()=>{
         CFG.background.layers[idx].file = reader.result;
         CFG.background.layers[idx].type = isVideo ? 'video' : 'image';
-        applyBgLayer(idx); buildBgLayersPanel(); saveConfig();
+        if (CFG.fitImageOnLoad){
+          // encaja la imagen completa en la pantalla (sin recortar) y la centra
+          fitLayerToViewport(idx, ()=>{ applyBgLayer(idx); buildBgLayersPanel(); saveConfig(); });
+        } else {
+          applyBgLayer(idx); buildBgLayersPanel(); saveConfig();
+        }
       };
       reader.readAsDataURL(file);
     });
@@ -1784,15 +2124,31 @@ function buildTracksPanel(){
    8. AUDIO — sintetizador + metrónomo (sin clics al soltar la tecla)
 --------------------------------------------------------- */
 const actx = new (window.AudioContext || window.webkitAudioContext)();
+/* Reanuda el AudioContext en el PRIMER gesto del usuario.
+   Sin esto, en una pestaña/ventana nueva el contexto arranca "suspended" (política de
+   autoplay) y tocar las teclas NO suena hasta pulsar Play. Con esto, cualquier clic,
+   toque o tecla lo desbloquea. */
+function resumeAudioOnce(){
+  if (actx.state === 'suspended') actx.resume().catch(()=>{});
+}
+['pointerdown','mousedown','keydown','touchstart'].forEach(evt=>
+  window.addEventListener(evt, resumeAudioOnce, {passive:true}));
 const masterGain = actx.createGain();
 masterGain.gain.value = 0.8;
 const eqLow = actx.createBiquadFilter(); eqLow.type='lowshelf'; eqLow.frequency.value=320; eqLow.gain.value=0;
 const eqMid = actx.createBiquadFilter(); eqMid.type='peaking'; eqMid.frequency.value=1200; eqMid.Q.value=0.8; eqMid.gain.value=0;
 const eqHigh = actx.createBiquadFilter(); eqHigh.type='highshelf'; eqHigh.frequency.value=3200; eqHigh.gain.value=0;
 const masterCompressor = actx.createDynamicsCompressor();
-masterCompressor.threshold.value = -14; masterCompressor.knee.value = 24;
-masterCompressor.ratio.value = 4; masterCompressor.attack.value = 0.003; masterCompressor.release.value = 0.15;
-masterGain.connect(eqLow); eqLow.connect(eqMid); eqMid.connect(eqHigh); eqHigh.connect(masterCompressor); masterCompressor.connect(actx.destination);
+// umbral alto: una sola nota pasa SIN comprimir (evita el sonido "pesado/aplastado");
+// solo actúa cuando se acumulan muchas notas (acordes densos).
+masterCompressor.threshold.value = -8; masterCompressor.knee.value = 12;
+masterCompressor.ratio.value = 3; masterCompressor.attack.value = 0.005; masterCompressor.release.value = 0.2;
+// segunda etapa: limitador brickwall cerca de 0 dBFS — solo corta los picos reales
+const masterLimiter = actx.createDynamicsCompressor();
+masterLimiter.threshold.value = -1; masterLimiter.knee.value = 0;
+masterLimiter.ratio.value = 20; masterLimiter.attack.value = 0.002; masterLimiter.release.value = 0.1;
+masterGain.connect(eqLow); eqLow.connect(eqMid); eqMid.connect(eqHigh); eqHigh.connect(masterCompressor);
+masterCompressor.connect(masterLimiter); masterLimiter.connect(actx.destination);
 const activeVoices = new Map();   // voces disparadas por el usuario (teclado/MIDI/clic)
 const autoVoices = new Map();     // auto-playback voices per track
 let sampleBuffer = null;
@@ -1821,6 +2177,25 @@ const REALISTIC_MAP = {
   clarinet:'clarinet', oboe:'oboe', bassoon:'bassoon'
 };
 const realisticCache = {}; // key: `${instrumento}_${nota}` -> AudioBuffer | 'loading' | 'error'
+/* Normaliza el pico de una muestra a `target` (por defecto 1.0) para que todas
+   las notas suenen a un nivel consistente y comparable al del sintetizador.
+   Sin esto, las muestras FluidR3 vienen con picos muy distintos (0.05–0.4). */
+function normalizeSample(buf, target){
+  target = target || 1.0;
+  let peak = 0;
+  for (let ch=0; ch<buf.numberOfChannels; ch++){
+    const d = buf.getChannelData(ch);
+    for (let i=0;i<d.length;i++){ const a = Math.abs(d[i]); if (a>peak) peak = a; }
+  }
+  if (peak > 0.0001){
+    const g = target/peak;
+    for (let ch=0; ch<buf.numberOfChannels; ch++){
+      const d = buf.getChannelData(ch);
+      for (let i=0;i<d.length;i++) d[i] *= g;
+    }
+  }
+  return buf;
+}
 function midiNoteToSfName(note){
   const names = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
   const octave = Math.floor(note/12)-1;
@@ -1836,9 +2211,75 @@ function tryLoadRealisticSample(preset, note){
   const url = `https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/${instrument}-mp3/${midiNoteToSfName(note)}.mp3`;
   fetch(url).then(r=>{ if (!r.ok) throw new Error('http'); return r.arrayBuffer(); })
     .then(buf=>actx.decodeAudioData(buf))
-    .then(decoded=>{ realisticCache[key] = decoded; })
+    .then(decoded=>{ realisticCache[key] = normalizeSample(decoded); })
     .catch(()=>{ realisticCache[key] = 'error'; });
   return 'loading';
+}
+
+/* --- PRECARGA del sonido realista ---
+   Analiza TODAS las notas que usará la canción y descarga sus muestras ANTES de
+   reproducir, para que la primera nota ya suene con el sample real y no haya un
+   salto sintetizador→muestra (lo que espantaba a quien probaba la app). */
+let preloadRunId = 0;
+function realisticJobFor(preset, note){
+  const instrument = REALISTIC_MAP[preset];
+  if (!instrument) return null;
+  if (note < 21 || note > 108) return null;
+  return {instrument, note, key: instrument+'_'+note};
+}
+function setPreloadUI(visible, text, done){
+  const el = document.getElementById('preloadIndicator');
+  if (!el) return;
+  if (text != null) document.getElementById('preloadText').textContent = text;
+  el.classList.toggle('show', !!visible);
+  el.classList.toggle('done', !!done);
+}
+function fillTpl(key, done, total){ return t(key).replace('{done}', done).replace('{total}', total); }
+async function preloadRealisticForSong(){
+  if (!CFG.realisticAudio.enabled) return;
+  const runId = ++preloadRunId;                 // invalida cualquier corrida previa
+  const seen = new Set(), jobs = [];
+  song.notes.forEach(n=>{
+    const cfg = trackSettings[n.track];
+    if (cfg && cfg.disabled) return;
+    const preset = (cfg && cfg.preset) || CFG.synth.preset || 'piano';
+    const job = realisticJobFor(preset, n.note);
+    if (!job || seen.has(job.key)) return;
+    seen.add(job.key); jobs.push(job);
+  });
+  if (!jobs.length) return;
+
+  // solo mostramos el aviso si tarda más de un instante (canciones cortas no parpadean)
+  let uiShown = false;
+  const uiTimer = setTimeout(()=>{ uiShown = true; setPreloadUI(true, fillTpl('preloadProgress', 0, jobs.length), false); }, 250);
+
+  let done = 0, ok = 0, failed = 0, cursor = 0;
+  const base = 'https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/';
+  async function worker(){
+    while (cursor < jobs.length){
+      if (runId !== preloadRunId) return;
+      const job = jobs[cursor++];
+      const cached = realisticCache[job.key];
+      if (cached && cached !== 'loading' && cached !== 'error'){ done++; ok++; continue; }
+      if (cached === 'error'){ done++; failed++; continue; }
+      realisticCache[job.key] = 'loading';
+      try{
+        const r = await fetch(base + job.instrument + '-mp3/' + midiNoteToSfName(job.note) + '.mp3');
+        if (!r.ok) throw new Error('http '+r.status);
+        const decoded = await actx.decodeAudioData(await r.arrayBuffer());
+        realisticCache[job.key] = normalizeSample(decoded); ok++;
+      }catch(e){ realisticCache[job.key] = 'error'; failed++; }
+      done++;
+      if (uiShown && runId === preloadRunId) setPreloadUI(true, fillTpl('preloadProgress', done, jobs.length), false);
+    }
+  }
+  await Promise.all(Array.from({length: Math.min(6, jobs.length)}, worker));
+  clearTimeout(uiTimer);
+  if (runId !== preloadRunId || !uiShown) return;
+  if (failed === 0) setPreloadUI(true, t('preloadDone'), true);
+  else if (ok > 0)  setPreloadUI(true, fillTpl('preloadPartial', ok, jobs.length), true);
+  else              setPreloadUI(true, t('preloadSkipped'), true);
+  setTimeout(()=>{ if (runId === preloadRunId) setPreloadUI(false, null, false); }, 2600);
 }
 function makeVoice(preset, note, velocity){
   const vol = Math.min(0.28, (velocity/127) * 0.32);
@@ -1849,7 +2290,9 @@ function makeVoice(preset, note, velocity){
       const src = actx.createBufferSource();
       src.buffer = cached;
       const gain = actx.createGain();
-      gain.gain.setValueAtTime(vol*4.5, now); // samples come quieter than oscillators; the compressor prevents clipping
+      // la muestra ya viene normalizada a pico 1.0 → mismo nivel que el sintetizador.
+      // El limitador final (masterLimiter) evita el recorte en acordes densos.
+      gain.gain.setValueAtTime(vol, now);
       src.connect(gain).connect(masterGain);
       src.start();
       return {src, gain, isSample:true};
@@ -2175,6 +2618,10 @@ document.getElementById('bassAmountInput').addEventListener('input', e=>{
 });
 document.getElementById('realisticAudioToggle').addEventListener('change', e=>{
   CFG.realisticAudio.enabled = e.target.checked; saveConfig();
+  if (e.target.checked) preloadRealisticForSong();
+});
+document.getElementById('fitImageOnLoad').addEventListener('change', e=>{
+  CFG.fitImageOnLoad = e.target.checked; saveConfig();
 });
 document.getElementById('eqPresetSelect').addEventListener('change', e=> setEqPreset(e.target.value));
 
@@ -2280,14 +2727,16 @@ function drawKeys(){
   const w = keysCanvas.width, h = keysCanvas.height;
   const blackH = h*0.44;
   const skin = CFG.keySkin;
+  const th = currentTheme();
+  const accent = th.accent;
   kctx.clearRect(0,0,w,h);
   Object.entries(keyLayout).forEach(([note,k])=>{
     note = +note; if (k.black) return;
     const x = k.x*w, kw = k.w*w;
     const fb = hitFeedback.get(note);
     const isDown = pressedKeys.has(note) || autoPressedNotes.has(note);
-    let color = '#f2ead9';
-    if (isDown) color = fb?fb.color:'#c9a24b';
+    let color = themePalette().keyWhite;   // teclas blancas según el tema
+    if (isDown) color = fb?fb.color:accent;
     else if (fb && fb.until>performance.now()) color = fb.color;
 
     if (skin==='neon'){
@@ -2472,6 +2921,45 @@ function pointerNoteHandler(down){
 keysCanvas.addEventListener('mousedown', pointerNoteHandler(true));
 keysCanvas.addEventListener('mouseup', pointerNoteHandler(false));
 keysCanvas.addEventListener('mouseleave', ()=>{ pressedKeys.forEach(n=>handleNoteOff(n)); });
+
+/* --- Soporte táctil (móvil/tablet) con MULTITOQUE: cada dedo toca una tecla --- */
+const touchNotes = new Map();  // identifier -> nota
+function touchNoteAt(t){
+  const rect = keysCanvas.getBoundingClientRect();
+  const cx = (t.clientX - rect.left) * devicePixelRatio;
+  const cy = (t.clientY - rect.top) * devicePixelRatio;
+  return noteAtPoint(cx, cy);
+}
+keysCanvas.addEventListener('touchstart', (e)=>{
+  if (!CFG.flags.virtualKeyboardClicks.value) return;
+  e.preventDefault();  // evita el zoom/scroll y el "fantasma" de 300ms
+  for (const t of e.changedTouches){
+    const note = touchNoteAt(t);
+    if (note==null) continue;
+    touchNotes.set(t.identifier, note);
+    handleNoteOn(note, 100);
+  }
+}, {passive:false});
+keysCanvas.addEventListener('touchmove', (e)=>{
+  if (!CFG.flags.virtualKeyboardClicks.value) return;
+  e.preventDefault();
+  for (const t of e.changedTouches){
+    const prev = touchNotes.get(t.identifier);
+    const note = touchNoteAt(t);
+    if (note===prev) continue;          // mismo dedo, misma tecla
+    if (prev!=null) handleNoteOff(prev); // deslizó a otra tecla
+    if (note!=null){ touchNotes.set(t.identifier, note); handleNoteOn(note, 100); }
+    else touchNotes.delete(t.identifier);
+  }
+}, {passive:false});
+function endTouches(e){
+  for (const t of e.changedTouches){
+    const note = touchNotes.get(t.identifier);
+    if (note!=null){ handleNoteOff(note); touchNotes.delete(t.identifier); }
+  }
+}
+keysCanvas.addEventListener('touchend', endTouches);
+keysCanvas.addEventListener('touchcancel', endTouches);
 
 /* ---------------------------------------------------------
    10. NOTAS CAYENDO — fórmula corregida (antes nunca llegaban al teclado)
@@ -3134,6 +3622,7 @@ window.addEventListener('keydown', e=>{
     if (nk === CFG.shortcuts.seekFwd){ e.preventDefault(); seekBy(5); return; }
     if (nk === CFG.shortcuts.mute && !e.ctrlKey && !e.metaKey && !e.altKey){ toggleMute(); return; }
     if (nk === CFG.shortcuts.fullscreen){ document.getElementById('btnFullscreen').click(); return; }
+    if (CFG.shortcuts.mini && nk === CFG.shortcuts.mini){ e.preventDefault(); toggleMiniPlayer(); return; }
     if (nk === CFG.shortcuts.sustainToggle){
       CFG.flags.sustainHold.value = !CFG.flags.sustainHold.value; buildFlagsPanel(); saveConfig(); return;
     }
@@ -3189,13 +3678,13 @@ function loadMidiFile(file){
       outer: for (const trk of parsed.tracks){ for (const ev of trk){ if (ev.tempo!==undefined){ initialTempo = ev.tempo; break outer; } } }
       const bpm = 60000000/initialTempo;
       playlist.push({file, notes, duration, bpm, fileName: file.name});
-      // auto-advance and load the last one if it is the first or we were not already loading
-      // if a MIDI is already loaded, do not replace it immediately; the user can use the playlist controls
+      // la primera canción se carga; las siguientes se AÑADEN a la cola
       if (playlist.length === 1){
         loadPlaylistAt(0, /*autoPlay*/ false);
       } else {
         showToast(file.name+' (añadido a la cola · total: '+playlist.length+')');
         updatePlaylistBadge();
+        refreshPlaylistButtons();   // habilita los botones de pista anterior/siguiente
       }
     }catch(err){
       showToast(t('errorReadingMidi') + err.message);
@@ -3222,12 +3711,14 @@ function loadPlaylistAt(idx, autoPlay){
   });
   buildTracksPanel();
   if (song.notes.length) applyKeyboardRange();
+  preloadRealisticForSong();   // predescarga las muestras de las notas de ESTA canción
   document.getElementById('btnPlay').disabled = false;
   document.getElementById('btnRewind').disabled = false;
   document.getElementById('btnStop').disabled = false;
   document.getElementById('btnForward').disabled = false;
   updateLogoLabel();
   updatePlaylistBadge();
+  refreshPlaylistButtons();   // refleja si hay más de una pista en la cola
   if (autoPlay){
     song.playing = true; song.lastFrameTs = null; song.countIn = null;
     updatePlayButtonLabel();
@@ -3283,7 +3774,7 @@ document.getElementById('modePromptWatch').addEventListener('click', ()=>{
   appMode = 'watch'; applyMode();
   document.getElementById('modePromptModal').classList.remove('open');
 });
-document.getElementById('btnPlay').addEventListener('click', ()=>{
+document.getElementById('btnPlay').addEventListener('click', async ()=>{
   if (actx.state === 'suspended') actx.resume();
   if (song.playing){
     song.playing = false; song.countIn = null;
@@ -3292,6 +3783,14 @@ document.getElementById('btnPlay').addEventListener('click', ()=>{
     document.getElementById('countInOverlay').classList.add('hidden');
     document.getElementById('centerAnnounce').classList.remove('show');
     return;
+  }
+  // espera a que las muestras reales estén listas antes de arrancar (evita el salto
+  // sintetizador→muestra en la primera nota)
+  if (appMode!=='free' && song.notes.length && CFG.realisticAudio.enabled){
+    const btn = document.getElementById('btnPlay');
+    btn.disabled = true; btn.textContent = '…';
+    try{ await preloadRealisticForSong(); }
+    finally{ btn.disabled = false; updatePlayButtonLabel(); }
   }
   if (appMode!=='free' && song.notes.length && (CFG.announce.enabled || CFG.countIn.enabled)){
     const announceOn = CFG.announce.enabled;
@@ -3416,6 +3915,65 @@ document.getElementById('btnLoop').addEventListener('click', ()=>{
   updateLoopButton(); buildFlagsPanel(); saveConfig();
 });
 
+/* ---------------------------------------------------------
+   Reproductor minimizado (ventana compacta flotante)
+--------------------------------------------------------- */
+const miniPos = {x:null, y:null};
+function miniPlayerEl(){ return document.getElementById('miniPlayer'); }
+function clampMiniPosition(){
+  const el = miniPlayerEl();
+  const r = el.getBoundingClientRect();
+  const maxX = Math.max(8, window.innerWidth - r.width - 8);
+  const maxY = Math.max(8, window.innerHeight - r.height - 8);
+  if (miniPos.x==null || miniPos.y==null){ miniPos.x = maxX; miniPos.y = maxY; } // esquina inf-derecha
+  miniPos.x = Math.max(8, Math.min(maxX, miniPos.x));
+  miniPos.y = Math.max(8, Math.min(maxY, miniPos.y));
+  el.style.left = miniPos.x+'px'; el.style.top = miniPos.y+'px';
+}
+function setMiniMode(on){
+  document.body.classList.toggle('mini-on', !!on);
+  if (on){
+    clampMiniPosition(); updateMiniPlayer();
+    // si el usuario eligió "no seguir reproduciendo", se pausa al minimizar
+    if (!CFG.miniPlayer.keepPlaying && song.playing){
+      song.playing = false; song.countIn = null; silenceAll(); updatePlayButtonLabel();
+    }
+  }
+}
+function toggleMiniPlayer(){ setMiniMode(!document.body.classList.contains('mini-on')); }
+function updateMiniPlayer(){
+  if (!document.body.classList.contains('mini-on')) return;
+  document.getElementById('miniTitle').textContent = song.fileName ? stripExt(song.fileName) : t('freeModeLabel');
+  document.getElementById('miniDot').classList.toggle('paused', !song.playing);
+  document.getElementById('miniPlay').textContent = song.playing ? '⏸' : '▶';
+  const total = song.duration||0, cur = Math.min(song.cursorTime||0, total);
+  document.getElementById('miniBarFill').style.width = (total ? (cur/total*100) : 0)+'%';
+  document.getElementById('miniTime').textContent = formatTime(cur)+' / '+formatTime(total);
+}
+(function(){
+  const head = document.getElementById('miniHead');
+  if (!head) return;
+  head.addEventListener('mousedown', e=>{
+    if (e.target.closest('button')) return;
+    const el = miniPlayerEl(); const r = el.getBoundingClientRect();
+    const offX = e.clientX - r.left, offY = e.clientY - r.top;
+    const move = ev=>{ miniPos.x = ev.clientX - offX; miniPos.y = ev.clientY - offY; clampMiniPosition(); };
+    const up = ()=>{ window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
+    e.preventDefault();
+  });
+})();
+document.getElementById('btnMini').addEventListener('click', ()=> setMiniMode(true));
+document.getElementById('miniRestore').addEventListener('click', ()=> setMiniMode(false));
+document.getElementById('miniPlay').addEventListener('click', ()=> document.getElementById('btnPlay').click());
+document.getElementById('miniStop').addEventListener('click', ()=> document.getElementById('btnStop').click());
+document.getElementById('miniRewind').addEventListener('click', ()=> seekBy(-5));
+document.getElementById('miniForward').addEventListener('click', ()=> seekBy(5));
+document.getElementById('miniKeepPlaying').addEventListener('change', e=>{
+  CFG.miniPlayer.keepPlaying = e.target.checked; saveConfig();
+});
+window.addEventListener('resize', ()=>{ if (document.body.classList.contains('mini-on')) clampMiniPosition(); });
+
 /* sistema de nombres de nota */
 document.getElementById('noteNamingSelect').addEventListener('change', e=>{ CFG.noteNaming = e.target.value; saveConfig(); });
 document.getElementById('freeDisplaySelect').addEventListener('change', e=>{ CFG.freeModeDisplay = e.target.value; saveConfig(); });
@@ -3446,6 +4004,9 @@ let draggingProgress = false;
 progressWrap.addEventListener('mousedown', e=>{ draggingProgress = true; seekFromEvent(e); });
 window.addEventListener('mousemove', e=>{ if (draggingProgress) seekFromEvent(e); });
 window.addEventListener('mouseup', ()=>{ draggingProgress = false; });
+/* barra de progreso táctil */
+progressWrap.addEventListener('touchstart', e=>{ e.preventDefault(); seekFromEvent(e); }, {passive:false});
+progressWrap.addEventListener('touchmove', e=>{ e.preventDefault(); seekFromEvent(e); }, {passive:false});
 
 function formatTime(s){
   s = Math.max(0, Math.round(s));
@@ -3453,6 +4014,7 @@ function formatTime(s){
   return m+':'+String(sec).padStart(2,'0');
 }
 function updateProgressBar(){
+  updateMiniPlayer();
   progressWrap.classList.toggle('hidden', !CFG.flags.showProgressBar.value);
   if (!song.duration) return;
   const pct = Math.min(100, (song.cursorTime/song.duration)*100);
@@ -3608,6 +4170,7 @@ function frame(ts){
    INICIO
 --------------------------------------------------------- */
 document.getElementById('langSelect').value = CFG.language;
+document.getElementById('themeSelect').value = CFG.theme || 'electric';
 document.getElementById('drawerLayoutSelect').value = CFG.drawerLayout;
 applyDrawerLayout();
 document.getElementById('toastDurationInput').value = CFG.toastDuration;
@@ -3630,6 +4193,8 @@ document.getElementById('synthPreset').value = CFG.synth.preset;
 document.getElementById('bassAmountInput').value = Math.round(CFG.bassAmount*100);
 document.getElementById('bassAmountVal').textContent = Math.round(CFG.bassAmount*100)+'%';
 document.getElementById('realisticAudioToggle').checked = CFG.realisticAudio.enabled;
+document.getElementById('fitImageOnLoad').checked = CFG.fitImageOnLoad;
+document.getElementById('miniKeepPlaying').checked = CFG.miniPlayer.keepPlaying;
 document.getElementById('sampleFields').style.display = (CFG.synth.preset==='sample') ? 'flex' : 'none';
 document.getElementById('metroEnable').checked = CFG.metronome.enabled;
 document.getElementById('mouseHideDelayInput').value = CFG.mouseHideDelay;
@@ -3642,6 +4207,9 @@ document.getElementById('volumeNum').value = Math.round(CFG.volume*100);
 document.getElementById('noteNamingSelect').value = CFG.noteNaming;
 document.getElementById('freeDisplaySelect').value = CFG.freeModeDisplay;
 document.getElementById('colorThemeSelect').value = CFG.colorTheme;
+applyTheme(false);   // aplica la clase de tema (claro/oscuro) antes de pintar
+// migración: si el fondo guardado es un default viejo (morado/gris/crema), pasar a la paleta del tema
+if (['#14121f','#D8D9D4','#151917','#EDE6D6'].includes(CFG.background.color)){ applyThemePalette(); saveConfig(); }
 document.getElementById('countInEnable').checked = CFG.countIn.enabled;
 document.getElementById('countInAudio').checked = CFG.countIn.audio;
 document.getElementById('settingsBgColorInput').value = CFG.settingsBgColor;

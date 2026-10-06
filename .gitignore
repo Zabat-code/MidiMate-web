@@ -1,4 +1,5 @@
 # Nothing to ignore for the standalone web version (single HTML file).
-# Kept for consistency.
 .DS_Store
 Thumbs.db
+*.bak
+*.bak-*
