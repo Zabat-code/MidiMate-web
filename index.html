@@ -429,6 +429,25 @@
   #miniControls .icon-square.primary{background:var(--brass); color:#241a08;}
   #miniControls .icon-square.primary:hover{background:var(--brass-soft);}
 
+  /* lista de reproducción */
+  #playlistContainer{display:flex; flex-direction:column; gap:4px; max-height:320px; overflow-y:auto;}
+  .pl-empty{font-size:12px; color:var(--ivory-dim); padding:8px 0;}
+  .pl-item{
+    display:flex; align-items:center; gap:6px; padding:7px 9px; border-radius:var(--radius-sm);
+    border:1px solid var(--line); background:var(--sunken); font-size:12px; cursor:pointer;
+  }
+  .pl-item:hover{border-color:var(--line-strong);}
+  .pl-item.current{border-color:var(--brass); background:rgba(201,162,75,0.12);}
+  .pl-item .pl-idx{font-family:ui-monospace,monospace; font-size:10px; color:var(--ivory-dim); min-width:16px;}
+  .pl-item .pl-name{flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--ivory);}
+  .pl-item.current .pl-name{color:var(--brass-soft); font-weight:600;}
+  .pl-item .pl-btn{
+    border:none; background:transparent; color:var(--ivory-dim); font-size:13px; line-height:1;
+    padding:3px 5px; border-radius:5px; cursor:pointer;
+  }
+  .pl-item .pl-btn:hover{color:var(--brass-soft); background:var(--hover-wash);}
+  .pl-item .pl-btn.remove:hover{color:var(--wrong);}
+
   /* indicador de precarga del sonido realista */
   #preloadIndicator{
     position:fixed; top:64px; left:50%; transform:translateX(-50%); z-index:62;
@@ -640,6 +659,15 @@
     </select>
   </div>
   <div class="subtle-field" data-i18n="shortcutsHint" style="font-size:11px;">Atajos: Espacio reproducir/pausar · ← / → retroceder/adelantar 5s · F pantalla completa · M silenciar</div>
+
+    </div>
+  </div>
+  <div class="settings-group" data-group="playlist">
+    <button class="group-header" data-group-toggle="playlist"><span class="group-icon">🎵</span><span data-i18n="groupPlaylist">Lista de reproducción</span><span class="group-icon">🎵</span><span class="group-chevron">▸</span></button>
+    <div class="group-body" id="groupBody-playlist">
+  <h2 data-i18n="sectionPlaylist">Canciones cargadas</h2>
+  <div style="font-size:11px; color:var(--ivory-dim); margin-bottom:6px;" data-i18n="playlistHint">Toca una canción para cargarla. Reordena con ▲▼ o arrastra; quita con ✕.</div>
+  <div id="playlistContainer"></div>
 
     </div>
   </div>
@@ -912,6 +940,9 @@ const TEXT = {
     volumeWarning:"Volumen por encima de 250% — riesgo de distorsión/daño auditivo",
     sectionGeneral:"General", drawerLayoutLabel:"Diseño de la pantalla de ajustes", layoutFullscreen:"Pantalla completa", layoutSidebar:"Panel lateral",
     themeLabel:"Tema de la app", themeElectric:"Piano eléctrico (oscuro)", themeWarmnight:"Noche cálida (oscuro)", themeGoldenhour:"Golden Hour (claro)", themeForest:"Forest Canopy (claro)",
+    groupPlaylist:"Lista de reproducción", sectionPlaylist:"Canciones cargadas",
+    playlistHint:"Toca una canción para cargarla. Reordena con ▲▼; quita con ✕.",
+    playlistEmpty:"No hay canciones cargadas. Carga un MIDI con el botón de arriba.",
     language:"Idioma", toastDuration:"Duración del aviso (segundos)",
     sectionAnnounce:"Aviso central", announceEnable:"Mostrar aviso al cargar un MIDI",
     announceTextLabel:"Texto (vacío = nombre del archivo)", announceFontLabel:"Fuente",
@@ -1017,6 +1048,9 @@ const TEXT = {
     volumeWarning:"Volume above 250% — risk of distortion/hearing damage",
     sectionGeneral:"General", drawerLayoutLabel:"Settings screen layout", layoutFullscreen:"Fullscreen", layoutSidebar:"Sidebar panel",
     themeLabel:"App theme", themeElectric:"Electric piano (dark)", themeWarmnight:"Warm night (dark)", themeGoldenhour:"Golden Hour (light)", themeForest:"Forest Canopy (light)",
+    groupPlaylist:"Playlist", sectionPlaylist:"Loaded songs",
+    playlistHint:"Tap a song to load it. Reorder with ▲▼; remove with ✕.",
+    playlistEmpty:"No songs loaded. Load a MIDI with the button above.",
     language:"Language", toastDuration:"Notice duration (seconds)",
     sectionAnnounce:"Center announcement", announceEnable:"Show announcement when loading a MIDI",
     announceTextLabel:"Text (empty = file name)", announceFontLabel:"Font",
@@ -1328,7 +1362,12 @@ function applyGroupDefaults(){
 }
 document.querySelectorAll('[data-group-toggle]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    btn.closest('.settings-group').classList.toggle('open');
+    const group = btn.closest('.settings-group');
+    // en panel lateral: acordeón — al abrir una, las demás se cierran
+    if (CFG.drawerLayout==='sidebar' && !group.classList.contains('open')){
+      document.querySelectorAll('.settings-group').forEach(g=>{ if (g!==group) g.classList.remove('open'); });
+    }
+    group.classList.toggle('open');
   });
 });
 document.getElementById('drawerLayoutSelect').addEventListener('change', e=>{
@@ -3685,6 +3724,7 @@ function loadMidiFile(file){
         showToast(file.name+' (añadido a la cola · total: '+playlist.length+')');
         updatePlaylistBadge();
         refreshPlaylistButtons();   // habilita los botones de pista anterior/siguiente
+        buildPlaylistPanel();
       }
     }catch(err){
       showToast(t('errorReadingMidi') + err.message);
@@ -3719,6 +3759,7 @@ function loadPlaylistAt(idx, autoPlay){
   updateLogoLabel();
   updatePlaylistBadge();
   refreshPlaylistButtons();   // refleja si hay más de una pista en la cola
+  buildPlaylistPanel();
   if (autoPlay){
     song.playing = true; song.lastFrameTs = null; song.countIn = null;
     updatePlayButtonLabel();
@@ -3733,6 +3774,63 @@ function updatePlaylistBadge(){
   if (playlist.length > 1){
     el.textContent = stripExt(song.fileName||'') + '  ['+(playlistIdx+1)+'/'+playlist.length+']';
   }
+}
+/* --- Panel de lista de reproducción (en Ajustes) --- */
+function buildPlaylistPanel(){
+  const box = document.getElementById('playlistContainer');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!playlist.length){
+    const p = document.createElement('div'); p.className='pl-empty';
+    p.textContent = t('playlistEmpty');
+    box.appendChild(p);
+    return;
+  }
+  playlist.forEach((entry, i)=>{
+    const row = document.createElement('div');
+    row.className = 'pl-item' + (i===playlistIdx ? ' current' : '');
+    row.innerHTML = `<span class="pl-idx">${i+1}</span><span class="pl-name"></span>
+      <button class="pl-btn" data-pl-up title="▲">▲</button>
+      <button class="pl-btn" data-pl-down title="▼">▼</button>
+      <button class="pl-btn remove" data-pl-remove title="✕">✕</button>`;
+    row.querySelector('.pl-name').textContent = entry.fileName;
+    row.addEventListener('click', (e)=>{
+      if (e.target.closest('.pl-btn')) return;
+      loadPlaylistAt(i, song.playing);
+      refreshPlaylistButtons();
+    });
+    row.querySelector('[data-pl-up]').addEventListener('click', ()=> movePlaylistItem(i, -1));
+    row.querySelector('[data-pl-down]').addEventListener('click', ()=> movePlaylistItem(i, +1));
+    row.querySelector('[data-pl-remove]').addEventListener('click', ()=> removePlaylistItem(i));
+    box.appendChild(row);
+  });
+}
+function movePlaylistItem(i, dir){
+  const j = i + dir;
+  if (j < 0 || j >= playlist.length) return;
+  [playlist[i], playlist[j]] = [playlist[j], playlist[i]];
+  if (playlistIdx === i) playlistIdx = j;
+  else if (playlistIdx === j) playlistIdx = i;
+  buildPlaylistPanel(); updatePlaylistBadge(); refreshPlaylistButtons(); updatePlaylistBadge();
+}
+function removePlaylistItem(i){
+  playlist.splice(i, 1);
+  if (!playlist.length){
+    playlistIdx = -1;
+    song.notes = []; song.duration = 0; song.fileName = null;
+    song.playing = false; silenceAll(); updatePlayButtonLabel();
+    document.getElementById('btnPlay').disabled = true;
+    document.getElementById('btnStop').disabled = true;
+    document.getElementById('btnRewind').disabled = true;
+    document.getElementById('btnForward').disabled = true;
+    updateLogoLabel();
+  } else {
+    if (i < playlistIdx) playlistIdx--;
+    else if (i === playlistIdx) playlistIdx = Math.min(playlistIdx, playlist.length-1);
+    if (i === playlistIdx || playlistIdx < 0) loadPlaylistAt(playlistIdx, false);
+    else { updatePlaylistBadge(); }
+  }
+  buildPlaylistPanel(); refreshPlaylistButtons();
 }
 function advancePlaylist(){
   if (playlist.length === 0) return;
@@ -3783,6 +3881,11 @@ document.getElementById('btnPlay').addEventListener('click', async ()=>{
     document.getElementById('countInOverlay').classList.add('hidden');
     document.getElementById('centerAnnounce').classList.remove('show');
     return;
+  }
+  // si la canción ya terminó, reiniciar desde el principio antes de reproducir
+  // (si no, el bucle la volvía a detener al instante: había que pulsar Stop primero)
+  if (song.duration && song.cursorTime >= song.duration - 0.05){
+    song.cursorTime = 0; song.pendingGate = null; resyncAutoPlayback();
   }
   // espera a que las muestras reales estén listas antes de arrancar (evita el salto
   // sintetizador→muestra en la primera nota)
@@ -4222,6 +4325,7 @@ updateVolIcon();
 applyColorTheme();
 applySettingsBg();
 buildTracksPanel();
+buildPlaylistPanel();
 applyMode();
 
 document.getElementById('eqPresetSelect').value = CFG.eq.preset||'flat';
