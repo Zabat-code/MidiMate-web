@@ -2946,20 +2946,25 @@ function noteAtPoint(px, py){
   }
   return null;
 }
+let mouseNote = null;
 function pointerNoteHandler(down){
   return (e)=>{
     if (!CFG.flags.virtualKeyboardClicks.value) return;
-    const rect = keysCanvas.getBoundingClientRect();
-    const cx = (e.touches?e.touches[0].clientX:e.clientX) - rect.left;
-    const cy = (e.touches?e.touches[0].clientY:e.clientY) - rect.top;
-    const note = noteAtPoint(cx*devicePixelRatio, cy*devicePixelRatio);
-    if (note==null) return;
-    if (down) handleNoteOn(note, 100); else handleNoteOff(note);
+    if (down) {
+      const rect = keysCanvas.getBoundingClientRect();
+      const cx = (e.touches?e.touches[0].clientX:e.clientX) - rect.left;
+      const cy = (e.touches?e.touches[0].clientY:e.clientY) - rect.top;
+      const note = noteAtPoint(cx*devicePixelRatio, cy*devicePixelRatio);
+      if (note==null) return;
+      if (!pressedKeys.has(note)) { handleNoteOn(note, 100); mouseNote = note; }
+    } else if (mouseNote != null) {
+      handleNoteOff(mouseNote); mouseNote = null;
+    }
   };
 }
 keysCanvas.addEventListener('mousedown', pointerNoteHandler(true));
-keysCanvas.addEventListener('mouseup', pointerNoteHandler(false));
-keysCanvas.addEventListener('mouseleave', ()=>{ pressedKeys.forEach(n=>handleNoteOff(n)); });
+window.addEventListener('mouseup', pointerNoteHandler(false));
+keysCanvas.addEventListener('mouseleave', ()=>{ if (mouseNote!=null){ handleNoteOff(mouseNote); mouseNote=null; } });
 
 /* --- Soporte táctil (móvil/tablet) con MULTITOQUE: cada dedo toca una tecla --- */
 const touchNotes = new Map();  // identifier -> nota
@@ -3634,6 +3639,9 @@ function normalizeKey(e){
   if (e.code === 'Space') return 'space';
   if (e.key === 'ArrowLeft') return 'arrowleft';
   if (e.key === 'ArrowRight') return 'arrowright';
+  if (e.code && e.code.startsWith('Key')) return e.code.slice(3).toLowerCase();
+  if (e.code === 'Semicolon') return ';';
+  if (e.code === 'Quote') return "'";
   return e.key.toLowerCase();
 }
 window.addEventListener('keydown', e=>{
@@ -3675,7 +3683,7 @@ window.addEventListener('keydown', e=>{
   }
 
   if (e.ctrlKey || e.metaKey || e.altKey) return; // nunca disparar notas con combinaciones
-  const k = e.key.toLowerCase();
+  const k = normalizeKey(e);
   if (listeningForNote != null){
     Object.keys(CFG.keymap).forEach(pk=>{ if (CFG.keymap[pk]===listeningForNote) delete CFG.keymap[pk]; });
     CFG.keymap[k] = listeningForNote;
@@ -3691,7 +3699,7 @@ window.addEventListener('keyup', e=>{
     if (!pedalIsDown()) releaseSustainedNotes();
     return;
   }
-  const k = e.key.toLowerCase();
+  const k = normalizeKey(e);
   if (CFG.keymap[k] != null) handleNoteOff(CFG.keymap[k]);
 });
 
