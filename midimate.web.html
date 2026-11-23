@@ -2641,9 +2641,19 @@ function buildTrackChain(mix, input){
   return { gainNode, pannerNode, filterLow, filterMid, filterHigh, reverbSend };
 }
 
+/* Compensación perceptual de graves (paridad con MidiMate).
+   Por debajo de C4 (MIDI 60) el oído pierde sensibilidad al fundamental y los
+   altavoces de portátil/Bluetooth no reproducen frecuencias por debajo de
+   ~150 Hz. Un realce gradual devuelve presencia a esas notas sin que el
+   cambio se note en el resto del teclado. Máximo +2.8 dB. */
+function lowNoteBoost(note){
+  if (!Number.isFinite(note) || note >= 60) return 1;
+  return 1 + Math.min(0.4, (60 - note) * 0.015);
+}
+
 function makeVoice(preset, note, velocity, mix){
   mix = normalizeTrackMix(mix);
-  const vol = Math.min(0.28, (velocity/127) * 0.32);
+  const vol = Math.min(0.40, Math.min(0.28, (velocity/127) * 0.32) * lowNoteBoost(note));
   const now = actx.currentTime;
   if (CFG.realisticAudio.enabled && REALISTIC_MAP[preset]){
     const cached = tryLoadRealisticSample(preset, note);
@@ -2703,6 +2713,15 @@ function makeVoice(preset, note, velocity, mix){
     src.connect(filt).connect(og).connect(gain);
     src.start(now+(delay||0));
     oscs.push(src);
+  }
+  // Notas muy graves (por debajo de C#3): añadimos armónicos en 2x y 3x.
+  // El fundamental de C2 (65 Hz) no existe en altavoces pequeños; estos
+  // armónicos (131 y 196 Hz) sí se reproducen y devuelven la sensación de
+  // tono sin cambiar el carácter del preset. Solo afecta a la síntesis; las
+  // muestras reales ya traen su propio contenido armónico.
+  if (note < 49){
+    osc('triangle', 2, 0, 0.16);
+    osc('sine', 3, 0, 0.07);
   }
   if (preset === 'piano'){
     osc('triangle',1,0,1); osc('triangle',2,3,0.15);
