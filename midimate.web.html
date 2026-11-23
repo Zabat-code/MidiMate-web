@@ -401,47 +401,6 @@
   body.obs-clean header{display:none !important;}
   body.layout-sidebar:has(#drawer.open) header{ padding-right:398px; }
 
-  /* ---------------------------------------------------------
-     Reproductor minimizado (PiP) — ventana compacta flotante
-  --------------------------------------------------------- */
-  #miniPlayer{
-    position:fixed; z-index:75; display:none; flex-direction:column;
-    width:264px; border-radius:14px; overflow:hidden;
-    background:var(--chrome-bg); border:1px solid var(--line-strong);
-    box-shadow:0 24px 60px -18px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.05) inset;
-    backdrop-filter:blur(12px); user-select:none;
-  }
-  body.mini-on #miniPlayer{display:flex;}
-  body.mini-on header, body.mini-on #modeBar, body.mini-on #progressWrap, body.mini-on main{display:none !important;}
-  #miniPlayer .mini-head{
-    display:flex; align-items:center; gap:8px; padding:10px 12px;
-    border-bottom:1px solid var(--line); cursor:move;
-    background:linear-gradient(180deg, rgba(201,162,75,0.10), rgba(201,162,75,0.02));
-  }
-  #miniPlayer .mini-dot{width:8px; height:8px; border-radius:50%; background:var(--brass); flex-shrink:0; box-shadow:0 0 8px rgba(201,162,75,0.8);}
-  #miniPlayer .mini-dot.paused{background:var(--ivory-dim); box-shadow:none;}
-  #miniTitle{
-    flex:1; min-width:0; font-size:12px; font-weight:600; color:var(--ivory);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
-  #miniPlayer .mini-x{
-    width:24px; height:24px; padding:0; border-radius:6px; border:1px solid var(--line);
-    background:transparent; color:var(--ivory-dim); font-size:13px; line-height:1; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-  }
-  #miniPlayer .mini-x:hover{color:var(--ivory); border-color:var(--line-strong);}
-  #miniPlayer .mini-body{padding:12px 14px 14px;}
-  #miniTime{
-    font-family:ui-monospace,'SFMono-Regular',Menlo,monospace; font-size:11px; color:var(--ivory-dim);
-    font-variant-numeric:tabular-nums; text-align:right; margin-bottom:8px;
-  }
-  #miniBar{position:relative; height:5px; border-radius:3px; background:var(--line); margin-bottom:12px; overflow:hidden;}
-  #miniBarFill{position:absolute; inset:0 auto 0 0; width:0%; background:var(--brass);}
-  #miniControls{display:flex; align-items:center; justify-content:center; gap:6px;}
-  #miniControls .icon-square{width:36px; height:34px; border-radius:8px; border:none; background:transparent;}
-  #miniControls .icon-square:hover{background:rgba(244,239,227,0.07);}
-  #miniControls .icon-square.primary{background:var(--brass); color:#241a08;}
-  #miniControls .icon-square.primary:hover{background:var(--brass-soft);}
 
   /* lista de reproducción */
   #playlistContainer{display:flex; flex-direction:column; gap:4px; max-height:320px; overflow-y:auto;}
@@ -532,7 +491,6 @@
     <label class="chip" data-ctrl="tempo"><span data-i18n="speed">Velocity</span> <input type="range" id="tempo" min="25" max="300" value="100"> <input type="number" id="tempoNum" min="25" max="300" value="100" style="width:54px;">%</label>
     <label class="chip" data-ctrl="volume"><span id="volIcon">🔊</span> <input type="range" id="volume" min="0" max="300" value="80"> <input type="number" id="volumeNum" min="0" max="300" value="80" style="width:52px;">%</label>
     <span class="sep"></span>
-    <button id="btnMini" class="icon-square" title="Minimizar reproductor">🗕</button>
     <button id="btnFullscreen" class="icon-square" data-ctrl="fullscreen" title="Fullscreen">⛶</button>
   </div>
 </header>
@@ -559,23 +517,6 @@
 
 <div id="toast"></div>
 <div id="preloadIndicator"><span id="preloadSpinner"></span><span id="preloadText"></span></div>
-<div id="miniPlayer">
-  <div class="mini-head" id="miniHead">
-    <span class="mini-dot" id="miniDot"></span>
-    <span id="miniTitle">—</span>
-    <button class="mini-x" id="miniRestore" title="Restaurar">⤢</button>
-  </div>
-  <div class="mini-body">
-    <div id="miniTime">0:00 / 0:00</div>
-    <div id="miniBar"><div id="miniBarFill"></div></div>
-    <div id="miniControls">
-      <button class="icon-square" id="miniRewind" title="-5s">⏪</button>
-      <button class="icon-square primary" id="miniPlay" title="Play/Pause">▶</button>
-      <button class="icon-square" id="miniForward" title="+5s">⏩</button>
-      <button class="icon-square" id="miniStop" title="Stop">⏹</button>
-    </div>
-  </div>
-</div>
 <div id="floatSettings" title="Settings">⚙</div>
 
 <div id="onboardingModal">
@@ -668,15 +609,6 @@
   <div class="flag-row">
     <div class="label" data-i18n="countInAudio">Sound during countdown</div>
     <label class="switch"><input type="checkbox" id="countInAudio"><span class="slider"></span></label>
-  </div>
-
-  <h2 data-i18n="sectionMini">Reproductor minimizado</h2>
-  <div class="flag-row">
-    <div>
-      <div class="label" data-i18n="miniKeepPlayingLabel">Seguir reproduciendo al minimizar</div>
-      <div class="desc" data-i18n="miniKeepPlayingDesc">Activado: la música sigue sonando en la ventana pequeña. Desactivado: al minimizar se pausa.</div>
-    </div>
-    <label class="switch"><input type="checkbox" id="miniKeepPlaying"><span class="slider"></span></label>
   </div>
 
   <h2 data-i18n="sectionAnnounce">Center notice</h2>
@@ -1129,11 +1061,6 @@ const TEXT = {
     watchModeAutoNote:"En modo Ver todas las pistas se auto-reproducen siempre — este interruptor solo aplica en modo Practicar.",
     modeFree:"Libre", modeWatch:"Ver", modePractice:"Practicar", freeModeLabel:"Modo libre",
     modePromptTitle:"¿Cómo quieres usar este MIDI?",
-    sectionMini:"Reproductor minimizado",
-    miniKeepPlayingLabel:"Seguir reproduciendo al minimizar",
-    miniKeepPlayingDesc:"Activado: la música sigue sonando en la ventana pequeña. Desactivado: al minimizar se pausa.",
-    miniRestore:"Restaurar",
-    miniMinimize:"Minimizar reproductor",
     fitImageLabel:"Ajustar imagen al cargar",
     fitImageDesc:"Al subir una imagen la encaja completa en la pantalla (sin recortarla) y la centra. Después puedes moverla y hacer zoom libremente.",
     preloadTitle:"Preparando sonido realista…",
@@ -1255,11 +1182,6 @@ const TEXT = {
     watchModeAutoNote:"In Watch mode every track always auto-plays — this switch only applies in Practice mode.",
     modeFree:"Free", modeWatch:"Watch", modePractice:"Practice", freeModeLabel:"Free mode",
     modePromptTitle:"How do you want to use this MIDI?",
-    sectionMini:"Mini player",
-    miniKeepPlayingLabel:"Keep playing when minimized",
-    miniKeepPlayingDesc:"On: the music keeps playing in the small window. Off: minimizing pauses playback.",
-    miniRestore:"Restore",
-    miniMinimize:"Minimize player",
     fitImageLabel:"Fit image on load",
     fitImageDesc:"When you upload an image it fits fully on screen (no cropping) and centers it. You can then move and zoom it freely.",
     preloadTitle:"Preparing realistic sound…",
@@ -1317,7 +1239,7 @@ const DEFAULTS = {
   freeModeDisplay:'text', // 'text' | 'staff'
   countIn:{enabled:true, audio:true},
   mouseHideDelay:2.5,
-  shortcuts:{playPause:'space', mute:'m', seekBack:'arrowleft', seekFwd:'arrowright', fullscreen:'l', sustainToggle:'p', openFile:'o', volUp:']', volDown:'[', obsClean:'c', mini:'n'},
+  shortcuts:{playPause:'space', mute:'m', seekBack:'arrowleft', seekFwd:'arrowright', fullscreen:'l', sustainToggle:'p', openFile:'o', volUp:']', volDown:'[', obsClean:'c'},
   eq:{low:0, mid:0, high:0, preset:'flat'},
   announce:{enabled:true, text:'', font:'display', size:32, color:'#f2ead9'},
   staffColors:{noteColor:'#EEE9D9', bgColor:'#292F2B'},
@@ -1336,7 +1258,6 @@ const DEFAULTS = {
   bassAmount:0.3,
   realisticAudio:{enabled:false},
   fitImageOnLoad:true,
-  miniPlayer:{keepPlaying:true},
   visibleKeyCount:'auto',
   staffHeight:280,
   synth:{preset:'piano', sampleDataUrl:null, sampleBaseNote:60},
@@ -1406,7 +1327,6 @@ function loadConfig(){
     if (typeof saved.bassAmount === 'number' && isFinite(saved.bassAmount)) merged.bassAmount = Math.max(0, Math.min(2, saved.bassAmount));
     Object.assign(merged.realisticAudio, saved.realisticAudio||{});
     if (saved.fitImageOnLoad!=null) merged.fitImageOnLoad = saved.fitImageOnLoad;
-    Object.assign(merged.miniPlayer, saved.miniPlayer||{});
     if (saved.visibleKeyCount) merged.visibleKeyCount = saved.visibleKeyCount;
     if (typeof saved.staffHeight === 'number' && isFinite(saved.staffHeight) && saved.staffHeight > 0) merged.staffHeight = saved.staffHeight;
     if (saved.keyFxStyle) merged.keyFxStyle = saved.keyFxStyle;
@@ -3914,7 +3834,6 @@ window.addEventListener('keydown', e=>{
     if (nk === CFG.shortcuts.seekFwd){ e.preventDefault(); seekBy(5); return; }
     if (nk === CFG.shortcuts.mute && !e.ctrlKey && !e.metaKey && !e.altKey){ toggleMute(); return; }
     if (nk === CFG.shortcuts.fullscreen){ document.getElementById('btnFullscreen').click(); return; }
-    if (CFG.shortcuts.mini && nk === CFG.shortcuts.mini){ e.preventDefault(); toggleMiniPlayer(); return; }
     if (nk === CFG.shortcuts.sustainToggle){
       CFG.flags.sustainHold.value = !CFG.flags.sustainHold.value; buildFlagsPanel(); saveConfig(); return;
     }
@@ -4341,64 +4260,6 @@ document.getElementById('btnLoop').addEventListener('click', ()=>{
   updateLoopButton(); buildFlagsPanel(); saveConfig();
 });
 
-/* ---------------------------------------------------------
-   Reproductor minimizado (ventana compacta flotante)
---------------------------------------------------------- */
-const miniPos = {x:null, y:null};
-function miniPlayerEl(){ return document.getElementById('miniPlayer'); }
-function clampMiniPosition(){
-  const el = miniPlayerEl();
-  const r = el.getBoundingClientRect();
-  const maxX = Math.max(8, window.innerWidth - r.width - 8);
-  const maxY = Math.max(8, window.innerHeight - r.height - 8);
-  if (miniPos.x==null || miniPos.y==null){ miniPos.x = maxX; miniPos.y = maxY; } // esquina inf-derecha
-  miniPos.x = Math.max(8, Math.min(maxX, miniPos.x));
-  miniPos.y = Math.max(8, Math.min(maxY, miniPos.y));
-  el.style.left = miniPos.x+'px'; el.style.top = miniPos.y+'px';
-}
-function setMiniMode(on){
-  document.body.classList.toggle('mini-on', !!on);
-  if (on){
-    clampMiniPosition(); updateMiniPlayer();
-    // si el usuario eligió "no seguir reproduciendo", se pausa al minimizar
-    if (!CFG.miniPlayer.keepPlaying && song.playing){
-      song.playing = false; song.countIn = null; silenceAll(); updatePlayButtonLabel();
-    }
-  }
-}
-function toggleMiniPlayer(){ setMiniMode(!document.body.classList.contains('mini-on')); }
-function updateMiniPlayer(){
-  if (!document.body.classList.contains('mini-on')) return;
-  document.getElementById('miniTitle').textContent = song.fileName ? stripExt(song.fileName) : t('freeModeLabel');
-  document.getElementById('miniDot').classList.toggle('paused', !song.playing);
-  document.getElementById('miniPlay').textContent = song.playing ? '⏸' : '▶';
-  const total = song.duration||0, cur = Math.min(song.cursorTime||0, total);
-  document.getElementById('miniBarFill').style.width = (total ? (cur/total*100) : 0)+'%';
-  document.getElementById('miniTime').textContent = formatTime(cur)+' / '+formatTime(total);
-}
-(function(){
-  const head = document.getElementById('miniHead');
-  if (!head) return;
-  head.addEventListener('mousedown', e=>{
-    if (e.target.closest('button')) return;
-    const el = miniPlayerEl(); const r = el.getBoundingClientRect();
-    const offX = e.clientX - r.left, offY = e.clientY - r.top;
-    const move = ev=>{ miniPos.x = ev.clientX - offX; miniPos.y = ev.clientY - offY; clampMiniPosition(); };
-    const up = ()=>{ window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
-    window.addEventListener('mousemove', move); window.addEventListener('mouseup', up);
-    e.preventDefault();
-  });
-})();
-document.getElementById('btnMini').addEventListener('click', ()=> setMiniMode(true));
-document.getElementById('miniRestore').addEventListener('click', ()=> setMiniMode(false));
-document.getElementById('miniPlay').addEventListener('click', ()=> document.getElementById('btnPlay').click());
-document.getElementById('miniStop').addEventListener('click', ()=> document.getElementById('btnStop').click());
-document.getElementById('miniRewind').addEventListener('click', ()=> seekBy(-5));
-document.getElementById('miniForward').addEventListener('click', ()=> seekBy(5));
-document.getElementById('miniKeepPlaying').addEventListener('change', e=>{
-  CFG.miniPlayer.keepPlaying = e.target.checked; saveConfig();
-});
-window.addEventListener('resize', ()=>{ if (document.body.classList.contains('mini-on')) clampMiniPosition(); });
 
 /* sistema de nombres de nota */
 document.getElementById('noteNamingSelect').addEventListener('change', e=>{ CFG.noteNaming = e.target.value; saveConfig(); });
@@ -4440,7 +4301,6 @@ function formatTime(s){
   return m+':'+String(sec).padStart(2,'0');
 }
 function updateProgressBar(){
-  updateMiniPlayer();
   progressWrap.classList.toggle('hidden', !CFG.flags.showProgressBar.value);
   if (!song.duration) return;
   const pct = Math.min(100, (song.cursorTime/song.duration)*100);
@@ -4783,7 +4643,6 @@ document.getElementById('bassAmountInput').value = Math.round(CFG.bassAmount*100
 document.getElementById('bassAmountVal').textContent = Math.round(CFG.bassAmount*100)+'%';
 document.getElementById('realisticAudioToggle').checked = CFG.realisticAudio.enabled;
 document.getElementById('fitImageOnLoad').checked = CFG.fitImageOnLoad;
-document.getElementById('miniKeepPlaying').checked = CFG.miniPlayer.keepPlaying;
 document.getElementById('sampleFields').style.display = (CFG.synth.preset==='sample') ? 'flex' : 'none';
 document.getElementById('metroEnable').checked = CFG.metronome.enabled;
 document.getElementById('mouseHideDelayInput').value = CFG.mouseHideDelay;
