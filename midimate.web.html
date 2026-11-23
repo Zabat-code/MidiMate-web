@@ -270,6 +270,17 @@
     padding:10px 0; border-bottom:1px solid var(--line); gap:12px;
   }
   .flag-row:last-child{border-bottom:none;}
+  .track-mix{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(116px,1fr));
+    gap:5px 10px; padding:7px 0 9px; font-size:10px; color:var(--ivory-dim);
+  }
+  .track-mix-head{
+    grid-column:1/-1; font-size:10px; color:var(--brass-soft);
+    border-top:1px solid var(--line); padding-top:6px;
+  }
+  .track-mix label{display:flex; align-items:center; gap:4px; min-width:0;}
+  .track-mix input[type=range]{width:100%; min-width:48px;}
+  .track-mix .val{min-width:28px; text-align:right; color:var(--ivory); font-variant-numeric:tabular-nums;}
   .flag-row .label{font-size:12.5px; color:var(--ivory);}
   .flag-row .desc{font-size:11px; color:var(--ivory-dim); margin-top:3px; line-height:1.4;}
   .icon-btn{
@@ -817,7 +828,7 @@
   <div class="flag-row">
     <div>
       <div class="label" data-i18n="realisticAudioLabel">Sonido realista (muestras reales, requiere internet)</div>
-      <div class="desc" data-i18n="realisticAudioDesc">Only for piano/grand/upright/harpsichord/electric, violin, acoustic guitar, and flute. It's heavier and takes a moment to load each note the first time.</div>
+      <div class="desc" data-i18n="realisticAudioDesc">Aplica a todos los instrumentos del sintetizador (piano, cuerdas, vientos, metales, percusión, etc). Pesa más y tarda un instante en cargar cada nota la primera vez.</div>
     </div>
     <label class="switch"><input type="checkbox" id="realisticAudioToggle"><span class="slider"></span></label>
   </div>
@@ -906,13 +917,13 @@
   </div>
   <div class="subtle-field">
     <span data-i18n="humanizeJitterTime">Variación de tiempo (ms)</span>
-    <input type="range" id="humanizeTime" min="0" max="60" value="12">
-    <span class="value" id="humanizeTimeVal">12ms</span>
+    <input type="range" id="humanizeTime" min="0" max="60" value="15">
+    <span class="value" id="humanizeTimeVal">15ms</span>
   </div>
   <div class="subtle-field">
     <span data-i18n="humanizeJitterVel">Variación de velocidad (%)</span>
-    <input type="range" id="humanizeVel" min="0" max="60" value="18">
-    <span class="value" id="humanizeVelVal">18%</span>
+    <input type="range" id="humanizeVel" min="0" max="60" value="10">
+    <span class="value" id="humanizeVelVal">10%</span>
   </div>
   <div class="subtle-field">
     <span data-i18n="swingAmount">Swing (%)</span>
@@ -1058,6 +1069,7 @@ const TEXT = {
     themeEmerald:"Esmeralda", themeMono:"Monocromo", themeCustom:"Personalizado (imagen)",
     sectionInstruments:"Instrumentos por pista", instrumentsHint:"Aparece al cargar un MIDI. \"Auto-reproducir\" hace que esa pista suene sola durante la reproducción, con el instrumento elegido — en Practicar tú decides qué pista suena sola y cuál tocas tú; en Ver todas suenan solas siempre.",
     trackLabel:"Pista", trackMute:"Silenciar", trackAuto:"Auto-reproducir", trackVisible:"Mostrar en partitura/notas", trackDisable:"Desactivar pista", noTracksYet:"Carga un MIDI para ver sus pistas.",
+    trackMixHint:"Mezcla de pista", trackVolume:"Vol", trackPan:"Pan", trackDetune:"Afinar", trackReverb:"Rev", trackEqLow:"Graves", trackEqMid:"Medios", trackEqHigh:"Agudos",
     watchModeAutoNote:"En modo Ver todas las pistas se auto-reproducen siempre — este interruptor solo aplica en modo Practicar.",
     modeFree:"Libre", modeWatch:"Ver", modePractice:"Practicar", freeModeLabel:"Modo libre",
     modePromptTitle:"¿Cómo quieres usar este MIDI?",
@@ -1179,6 +1191,7 @@ const TEXT = {
     themeEmerald:"Emerald", themeMono:"Monochrome", themeCustom:"Custom (from image)",
     sectionInstruments:"Instruments per track", instrumentsHint:"Appears once a MIDI is loaded. \"Auto-play\" makes that track sound on its own during playback, using the chosen instrument — in Practice you choose which track plays itself vs which you play; in Watch every track always plays itself.",
     trackLabel:"Track", trackMute:"Mute", trackAuto:"Auto-play", trackVisible:"Show in staff/falling notes", trackDisable:"Disable track", noTracksYet:"Load a MIDI file to see its tracks.",
+    trackMixHint:"Track mix", trackVolume:"Vol", trackPan:"Pan", trackDetune:"Tune", trackReverb:"Rev", trackEqLow:"Low", trackEqMid:"Mid", trackEqHigh:"High",
     watchModeAutoNote:"In Watch mode every track always auto-plays — this switch only applies in Practice mode.",
     modeFree:"Free", modeWatch:"Watch", modePractice:"Practice", freeModeLabel:"Free mode",
     modePromptTitle:"How do you want to use this MIDI?",
@@ -1241,6 +1254,7 @@ const DEFAULTS = {
   mouseHideDelay:2.5,
   shortcuts:{playPause:'space', mute:'m', seekBack:'arrowleft', seekFwd:'arrowright', fullscreen:'l', sustainToggle:'p', openFile:'o', volUp:']', volDown:'[', obsClean:'c'},
   eq:{low:0, mid:0, high:0, preset:'flat'},
+  tracks:{},   // mezcla por pista persistente (volumen/pan/detune/reverb/EQ)
   announce:{enabled:true, text:'', font:'display', size:32, color:'#f2ead9'},
   staffColors:{noteColor:'#EEE9D9', bgColor:'#292F2B'},
   settingsBgColor:'#1c211e',
@@ -1262,7 +1276,7 @@ const DEFAULTS = {
   staffHeight:280,
   synth:{preset:'piano', sampleDataUrl:null, sampleBaseNote:60},
   metronome:{enabled:false, bpm:120},
-  humanize:{enabled:false, jitterTime:12, jitterVel:18},
+  humanize:{enabled:false, jitterTime:15, jitterVel:10},
   swing:{amount:0},
   keymap:{...DEFAULT_KEYMAP}
 };
@@ -1310,6 +1324,7 @@ function loadConfig(){
     Object.assign(merged.shortcuts, saved.shortcuts||{});
     if (merged.shortcuts.obsClean === 'k') merged.shortcuts.obsClean = 'c';
     Object.assign(merged.eq, saved.eq||{});
+    merged.tracks = saved.tracks || {};
     Object.assign(merged.staffColors, saved.staffColors||{});
     if (saved.settingsBgColor) merged.settingsBgColor = saved.settingsBgColor;
     if (saved.panelColor) merged.panelColor = saved.panelColor;
@@ -1341,6 +1356,7 @@ function loadConfig(){
 let CFG = loadConfig();
 let saveTimer = null;
 function saveConfig(){
+  if (trackMixReady) CFG.tracks = trackSettings;
   clearTimeout(saveTimer);
   saveTimer = setTimeout(()=>{
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(CFG)); }
@@ -2158,7 +2174,8 @@ const pressedKeys = new Set();
 const autoPressedNotes = new Set(); // keys highlighted by auto-playback (View mode / auto tracks in Practice)
 const hitFeedback = new Map();
 let accuracy = {hits:0, total:0};
-let trackSettings = {};   // {trackIdx: {preset, auto}} — multi-instrumento por pista
+let trackSettings = {};   // {trackIdx: {preset, auto, volume, pan, detune, reverb, eq}}
+var trackMixReady = false; // se activa al terminar el arranque; evita TDZ en saveConfig
 let prevCursorTime = 0;   // for the auto-playback scheduler
 const SCHED_EPS = 1e-4;   // offset minimo para incluir notas en t=0 tras reinicio/seek
 let schedPendingStart = false; // se consume en el primer frame con reproduccion activa
@@ -2278,9 +2295,23 @@ function buildTracksPanel(){
       </div>`;
     row.querySelector(`[data-track-preset="${idx}"]`).value = cfg.preset;
     list.appendChild(row);
+
+    const m = normalizeTrackMix(cfg);
+    const mix = document.createElement('div');
+    mix.className = 'track-mix';
+    mix.innerHTML = `
+      <div class="track-mix-head">${t('trackMixHint')} · ${t('trackLabel')} ${idx+1}</div>
+      <label>${t('trackVolume')}<input type="range" data-track-volume="${idx}" min="0" max="200" value="${Math.round(m.volume*100)}"><span class="val">${Math.round(m.volume*100)}%</span></label>
+      <label>${t('trackPan')}<input type="range" data-track-pan="${idx}" min="-100" max="100" value="${Math.round(m.pan*100)}"><span class="val">${Math.round(m.pan*100)}</span></label>
+      <label>${t('trackDetune')}<input type="range" data-track-detune="${idx}" min="-50" max="50" value="${m.detune}"><span class="val">${m.detune}</span></label>
+      <label>${t('trackReverb')}<input type="range" data-track-reverb="${idx}" min="0" max="100" value="${Math.round(m.reverb*100)}"><span class="val">${Math.round(m.reverb*100)}%</span></label>
+      <label>${t('trackEqLow')}<input type="range" data-track-eq-low="${idx}" min="-12" max="12" value="${m.eq.low}"><span class="val">${m.eq.low}</span></label>
+      <label>${t('trackEqMid')}<input type="range" data-track-eq-mid="${idx}" min="-12" max="12" value="${m.eq.mid}"><span class="val">${m.eq.mid}</span></label>
+      <label>${t('trackEqHigh')}<input type="range" data-track-eq-high="${idx}" min="-12" max="12" value="${m.eq.high}"><span class="val">${m.eq.high}</span></label>`;
+    list.appendChild(mix);
   });
   list.querySelectorAll('[data-track-preset]').forEach(sel=>{
-    sel.addEventListener('change', e=>{ trackSettings[+e.target.dataset.trackPreset].preset = e.target.value; });
+    sel.addEventListener('change', e=>{ trackSettings[+e.target.dataset.trackPreset].preset = e.target.value; saveConfig(); });
   });
   list.querySelectorAll('[data-track-visible]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -2297,6 +2328,7 @@ function buildTracksPanel(){
   list.querySelectorAll('[data-track-auto]').forEach(cb=>{
     cb.addEventListener('change', e=>{
       trackSettings[+e.target.dataset.trackAuto].auto = e.target.checked;
+      saveConfig();
       resyncAutoPlayback();
     });
   });
@@ -2307,7 +2339,32 @@ function buildTracksPanel(){
       if (e.target.checked){
         song.notes.forEach(n=>{ if (n.track===idx) autoPressedNotes.delete(n.note); });
       }
+      saveConfig();
       resyncAutoPlayback();
+    });
+  });
+
+  // Mezcla por pista: los valores se guardan en CFG.tracks (saveConfig los
+  // sincroniza desde trackSettings) y se aplican a las notas nuevas.
+  const mixHandler = (attr, apply) => {
+    list.querySelectorAll('['+attr+']').forEach(inp=>{
+      inp.addEventListener('input', e=>{
+        const idx = +e.target.dataset[attr.replace(/^data-/, '').replace(/-([a-z])/g, (_,c)=>c.toUpperCase())];
+        if (!trackSettings[idx]) trackSettings[idx] = {};
+        apply(trackSettings[idx], +e.target.value);
+        e.target.nextElementSibling.textContent = e.target.value + (attr.includes('volume') || attr.includes('reverb') ? '%' : '');
+        saveConfig();
+      });
+    });
+  };
+  mixHandler('data-track-volume', (cfg,v)=>{ cfg.volume = v/100; });
+  mixHandler('data-track-pan', (cfg,v)=>{ cfg.pan = v/100; });
+  mixHandler('data-track-detune', (cfg,v)=>{ cfg.detune = v; });
+  mixHandler('data-track-reverb', (cfg,v)=>{ cfg.reverb = v/100; });
+  ['low','mid','high'].forEach(band=>{
+    mixHandler('data-track-eq-'+band, (cfg,v)=>{
+      if (!cfg.eq) cfg.eq = {low:0, mid:0, high:0};
+      cfg.eq[band] = v;
     });
   });
 }
@@ -2341,6 +2398,28 @@ masterLimiter.threshold.value = -1; masterLimiter.knee.value = 0;
 masterLimiter.ratio.value = 20; masterLimiter.attack.value = 0.002; masterLimiter.release.value = 0.1;
 masterGain.connect(eqLow); eqLow.connect(eqMid); eqMid.connect(eqHigh); eqHigh.connect(masterCompressor);
 masterCompressor.connect(masterLimiter); masterLimiter.connect(actx.destination);
+
+/* Bus de reverberación (paridad con MidiMate). Se crea perezosamente la primera
+   vez que una pista pide reverb. La señal entra por reverbBus, pasa por un
+   convolver con respuesta al impulso sintética y vuelve a masterGain, es decir,
+   antes del EQ/compresor/limitador maestro. También se graba en el vídeo. */
+const reverbBus = actx.createGain();
+reverbBus.gain.value = 1.0;
+let reverbNode = null;
+function ensureReverb(){
+  if (reverbNode) return reverbBus;
+  const conv = actx.createConvolver();
+  const sr = actx.sampleRate, len = Math.floor(sr * 1.2);
+  const ir = actx.createBuffer(2, len, sr);
+  for (let ch = 0; ch < 2; ch++){
+    const data = ir.getChannelData(ch);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sr * 0.4));
+  }
+  conv.buffer = ir;
+  reverbBus.connect(conv); conv.connect(masterGain);
+  reverbNode = conv;
+  return reverbBus;
+}
 const activeVoices = new Map();   // voces disparadas por el usuario (teclado/MIDI/clic)
 const autoVoices = new Map();     // auto-playback voices per track
 let sampleBuffer = null;
@@ -2491,7 +2570,79 @@ async function preloadRealisticForSong(){
   else              setPreloadUI(true, t('preloadSkipped'), true);
   setTimeout(()=>{ if (runId === preloadRunId) setPreloadUI(false, null, false); }, 2600);
 }
-function makeVoice(preset, note, velocity){
+/* Normaliza los parámetros de mezcla de una pista. Valores por defecto y rangos
+   idénticos a los de MidiMate (escritorio); así una configuración guardada con
+   valores raros no puede romper el grafo de audio. */
+function normalizeTrackMix(m){
+  m = m || {};
+  const eq = m.eq || {};
+  const clamp = (v, lo, hi, def) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : def;
+  };
+  return {
+    volume: clamp(m.volume !== undefined ? m.volume : 1, 0, 2, 1),
+    pan: clamp(m.pan || 0, -1, 1, 0),
+    detune: clamp(m.detune || 0, -50, 50, 0),
+    reverb: clamp(m.reverb || 0, 0, 1, 0),
+    eq: {
+      low: clamp(eq.low || 0, -12, 12, 0),
+      mid: clamp(eq.mid || 0, -12, 12, 0),
+      high: clamp(eq.high || 0, -12, 12, 0)
+    }
+  };
+}
+
+/* gain -> [EQ] -> [pan] -> masterGain, con envío opcional a reverbBus.
+   Solo se crean los nodos que se usan: con la mezcla neutra (pan 0, EQ plana,
+   reverb 0) la cadena queda como antes, gain -> masterGain. */
+const MIX_NOP = { disconnect(){}, connect(){} };
+const MIX_EPS = 0.001;
+function buildTrackChain(mix, input){
+  const gainNode = actx.createGain();
+  gainNode.gain.value = mix.volume;
+
+  const usePan = Math.abs(mix.pan) > MIX_EPS;
+  const pannerNode = usePan ? actx.createStereoPanner() : MIX_NOP;
+  if (usePan) pannerNode.pan.value = mix.pan;
+
+  const useEq = Math.abs(mix.eq.low) > MIX_EPS ||
+                Math.abs(mix.eq.mid) > MIX_EPS ||
+                Math.abs(mix.eq.high) > MIX_EPS;
+  let filterLow = MIX_NOP, filterMid = MIX_NOP, filterHigh = MIX_NOP;
+  if (useEq){
+    filterLow = actx.createBiquadFilter();
+    filterLow.type = 'lowshelf'; filterLow.frequency.value = 320;
+    filterLow.gain.value = mix.eq.low;
+    filterMid = actx.createBiquadFilter();
+    filterMid.type = 'peaking'; filterMid.frequency.value = 1200; filterMid.Q.value = 0.8;
+    filterMid.gain.value = mix.eq.mid;
+    filterHigh = actx.createBiquadFilter();
+    filterHigh.type = 'highshelf'; filterHigh.frequency.value = 3200;
+    filterHigh.gain.value = mix.eq.high;
+    filterLow.connect(filterMid); filterMid.connect(filterHigh);
+  }
+
+  const useReverb = Math.abs(mix.reverb) > MIX_EPS;
+  const reverbSend = useReverb ? actx.createGain() : MIX_NOP;
+  if (useReverb){
+    reverbSend.gain.value = mix.reverb * 0.8;
+    ensureReverb();
+    reverbSend.connect(reverbBus);
+  }
+
+  let head = gainNode;
+  if (useEq){ gainNode.connect(filterLow); head = filterHigh; }
+  if (usePan){ head.connect(pannerNode); head = pannerNode; }
+  head.connect(masterGain);
+  if (useReverb) head.connect(reverbSend);
+  input.connect(gainNode);
+
+  return { gainNode, pannerNode, filterLow, filterMid, filterHigh, reverbSend };
+}
+
+function makeVoice(preset, note, velocity, mix){
+  mix = normalizeTrackMix(mix);
   const vol = Math.min(0.28, (velocity/127) * 0.32);
   const now = actx.currentTime;
   if (CFG.realisticAudio.enabled && REALISTIC_MAP[preset]){
@@ -2503,9 +2654,10 @@ function makeVoice(preset, note, velocity){
       // la muestra ya viene normalizada a pico 1.0 → mismo nivel que el sintetizador.
       // El limitador final (masterLimiter) evita el recorte en acordes densos.
       gain.gain.setValueAtTime(vol, now);
-      src.connect(gain).connect(masterGain);
+      src.connect(gain);
+      const chain = buildTrackChain(mix, gain);
       src.start();
-      return {src, gain, isSample:true};
+      return {src, gain, isSample:true, chain};
     }
     // while loading (or if it fails / no network) normal synthesis keeps playing, no gaps
   }
@@ -2515,9 +2667,10 @@ function makeVoice(preset, note, velocity){
     src.playbackRate.value = noteToFreq(note) / noteToFreq(CFG.synth.sampleBaseNote);
     const gain = actx.createGain();
     gain.gain.setValueAtTime(vol, now);
-    src.connect(gain).connect(masterGain);
+    src.connect(gain);
+    const chain = buildTrackChain(mix, gain);
     src.start();
-    return {src, gain, isSample:true};
+    return {src, gain, isSample:true, chain};
   }
   const gain = actx.createGain();
   gain.gain.setValueAtTime(0, now);
@@ -2535,7 +2688,7 @@ function makeVoice(preset, note, velocity){
   function osc(type, freqMul, detune, gainMul, delay){
     const o = actx.createOscillator();
     o.type = type; o.frequency.value = noteToFreq(note)*freqMul;
-    o.detune.value = (detune||0) + (Math.random()*4-2); // slight natural variation between notes
+    o.detune.value = (detune||0) + mix.detune + (Math.random()*4-2); // detune de pista + variación natural
     const og = actx.createGain(); og.gain.value = gainMul;
     o.connect(og).connect(voiceOut);
     o.start(now+(delay||0));
@@ -2679,8 +2832,8 @@ function makeVoice(preset, note, velocity){
     lfo.start(now);
     oscs.push(lfo);
   }
-  gain.connect(masterGain);
-  return {oscs, gain};
+  const chain = buildTrackChain(mix, gain);
+  return {oscs, gain, chain};
 }
 function releaseVoice(map, key){
   const v = map.get(key);
@@ -2695,16 +2848,23 @@ function releaseVoice(map, key){
   g.linearRampToValueAtTime(0.0001, now + 0.06);
   if (v.isSample){ try{ v.src.stop(now+0.08); }catch(e){} }
   else v.oscs.forEach(o=>{ try{ o.stop(now+0.08); }catch(e){} });
+  if (v.chain){
+    const ch = v.chain;
+    setTimeout(()=>{
+      [v.gain, ch.gainNode, ch.pannerNode, ch.filterLow, ch.filterMid, ch.filterHigh, ch.reverbSend]
+        .forEach(node=>{ try{ node.disconnect(); }catch(e){} });
+    }, 120);
+  }
   map.delete(key);
 }
-function startVoice(note, velocity){
+function startVoice(note, velocity, mix){
   stopVoice(note);
-  activeVoices.set(note, makeVoice(CFG.synth.preset, note, velocity));
+  activeVoices.set(note, makeVoice(CFG.synth.preset, note, velocity, mix));
 }
 function stopVoice(note){ releaseVoice(activeVoices, note); }
-function startAutoVoice(key, preset, note, velocity){
+function startAutoVoice(key, preset, note, velocity, mix){
   releaseVoice(autoVoices, key);
-  autoVoices.set(key, makeVoice(preset, note, velocity));
+  autoVoices.set(key, makeVoice(preset, note, velocity, mix));
 }
 function stopAutoVoice(key){ releaseVoice(autoVoices, key); }
 
@@ -3924,12 +4084,26 @@ function loadPlaylistAt(idx, autoPlay){
   prevCursorTime = -SCHED_EPS;
   schedPendingStart = true;
   autoVoices.forEach((v,k)=>releaseVoice(autoVoices,k));
-  // pistas
+  // pistas: se conserva la mezcla guardada para cada índice de pista
+  const savedMix = CFG.tracks || {};
   trackSettings = {};
   [...new Set(song.notes.map(n=>n.track))].sort((a,b)=>a-b).forEach(idx=>{
     const prog = entry.programs && entry.programs[idx];
-    trackSettings[idx] = {preset: prog!=null ? programToPresetName(prog).preset : 'piano', auto:false, visible:true, disabled:false, program: prog};
+    const sm = savedMix[idx] || {};
+    trackSettings[idx] = {
+      preset: prog!=null ? programToPresetName(prog).preset : (sm.preset || 'piano'),
+      auto: sm.auto != null ? !!sm.auto : false,
+      visible: sm.visible !== false,
+      disabled: !!sm.disabled,
+      program: prog,
+      volume: sm.volume != null ? sm.volume : 1,
+      pan: sm.pan || 0,
+      detune: sm.detune || 0,
+      reverb: sm.reverb || 0,
+      eq: sm.eq || {low:0, mid:0, high:0}
+    };
   });
+  CFG.tracks = trackSettings;
   buildTracksPanel();
   if (song.notes.length) applyKeyboardRange();
   preloadRealisticForSong();   // predescarga las muestras de las notas de ESTA canción
@@ -4370,7 +4544,14 @@ function scheduleAutoPlayback(){
     const key = n.track+'|'+n.channel+'|'+n.note;
     const hStart = humanizedStart(n), hEnd = humanizedEnd(n);
     if (hStart > from && hStart <= to){
-      startAutoVoice(key, preset, n.note, humanizedVel(n));
+      const mixParams = {
+        volume: cfg && cfg.volume !== undefined ? cfg.volume : 1,
+        pan: cfg && cfg.pan !== undefined ? cfg.pan : 0,
+        detune: cfg && cfg.detune !== undefined ? cfg.detune : 0,
+        reverb: cfg && cfg.reverb !== undefined ? cfg.reverb : 0,
+        eq: (cfg && cfg.eq) || {low:0, mid:0, high:0}
+      };
+      startAutoVoice(key, preset, n.note, humanizedVel(n), mixParams);
       if (!cfg || cfg.visible!==false){
         autoPressedNotes.add(n.note);
         spawnKeyEffect(n.note, currentTheme().played);
@@ -4669,6 +4850,8 @@ masterGain.gain.value = CFG.volume;
 updateVolIcon();
 applyColorTheme();
 applySettingsBg();
+Object.assign(trackSettings, CFG.tracks || {});
+trackMixReady = true;
 buildTracksPanel();
 buildPlaylistPanel();
 applyMode();
