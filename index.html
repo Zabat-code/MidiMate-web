@@ -225,27 +225,41 @@
     color:var(--section-heading); border-bottom:1px solid var(--line); padding-bottom:7px;
   }
   #drawer h2:first-child{margin-top:0;}
+  /* Color representativo por categoría de ajustes. Se mezcla con --group-ink
+     (calculado en JS desde el fondo real del panel) para no chocar con ningún tema
+     ni con un color de ajustes personalizado. */
+  .settings-group[data-group="general"]    { --group-color:#4EA8DE; } /* General y modo · azul */
+  .settings-group[data-group="playlist"]   { --group-color:#E8703A; } /* Lista de reproducción · coral */
+  .settings-group[data-group="background"] { --group-color:#9C6FE8; } /* Fondo · violeta */
+  .settings-group[data-group="appearance"] { --group-color:#D9578C; } /* Apariencia · rosa */
+  .settings-group[data-group="buttons"]    { --group-color:#2FB58B; } /* Asignación de botones · verde */
+  .settings-group[data-group="audio"]      { --group-color:#E0A82E; } /* Audio · ámbar */
+  .settings-group[data-group="export"]     { --group-color:#D9485F; } /* Exportar vídeo · rojo */
   .settings-group{
     break-inside:avoid; margin-bottom:12px; border:1px solid var(--line); border-radius:var(--radius);
     overflow:hidden; background:var(--sunken); box-shadow:var(--shadow-card);
   }
   .group-header{
     width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px;
-    background:rgba(201,162,75,0.06); border:none; border-radius:0;
-    padding:12px 16px; font-family:var(--font-display); font-size:22.5px; color:var(--group-heading);
+    background:rgba(201,162,75,0.06);
+    background:color-mix(in oklab, var(--group-color, var(--brass)) 13%, transparent);
+    border:none; border-left:4px solid var(--group-color, var(--brass)); border-radius:0;
+    padding:12px 16px; font-family:var(--font-display); font-size:22.5px;
+    color:var(--group-heading);
+    color:color-mix(in oklab, var(--group-color, var(--brass)) var(--group-mix, 64%), var(--group-ink, var(--group-heading)));
     cursor:pointer; text-align:left;
-    /* contorno sutil para que las palabras se noten sobre cualquier fondo */
-    text-shadow:0 1px 2px rgba(0,0,0,0.35), 0 0 1px rgba(0,0,0,0.25);
   }
-  .group-header .group-icon{font-size:0.75em; flex-shrink:0; opacity:.75;}
-  .group-header:hover{background:rgba(201,162,75,0.14);}
+  .group-header .group-icon{font-size:0.75em; flex-shrink:0; opacity:.85;}
+  .group-header:hover{
+    background:rgba(201,162,75,0.14);
+    background:color-mix(in oklab, var(--group-color, var(--brass)) 22%, transparent);
+  }
   .group-chevron{transition:transform .2s ease; font-size:13px; margin-left:auto; color:var(--ivory-dim);}
   .settings-group.open .group-chevron{transform:rotate(90deg);}
   .group-body{
     max-height:0; overflow:hidden; transition:max-height .25s ease;
     padding:0 16px;
   }
-  /* todos los grupos comparten el mismo encabezado crema (sin arcoíris) */
   .settings-group.open .group-body{ max-height:4000px; padding:6px 16px 16px; border-top:1px solid var(--line); }
   .group-body h2{ font-size:11px; margin:16px 0 8px; }
   .group-body h2:first-child{ margin-top:4px; }
@@ -468,6 +482,29 @@
   }
   @keyframes preloadSpin{to{transform:rotate(360deg);}}
   #preloadText{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+  /* --- Paridad con MidiMate: tour, reporte, playlist portable y vídeo --- */
+  #onboardingModal{position:fixed; inset:0; z-index:120; display:none; align-items:center;
+    justify-content:center; background:rgba(6,8,7,.82); backdrop-filter:blur(6px);}
+  #onboardingModal.open{display:flex;}
+  #onboardingCard{max-width:520px; width:calc(100% - 40px); padding:26px 28px;
+    background:var(--panel,#292F2B); border:1px solid var(--line); border-radius:16px;
+    box-shadow:0 24px 70px rgba(0,0,0,.55); text-align:center;}
+  #onboardingIcon{font-size:46px; line-height:1;}
+  #onboardingTitle{font-family:var(--font-display); font-size:26px; margin:12px 0 8px; color:var(--brass);}
+  #onboardingBody{font-size:14px; line-height:1.6; color:var(--ivory,#f3ecdc); opacity:.9; min-height:64px;}
+  #onboardingDots{display:flex; gap:7px; justify-content:center; margin:18px 0 6px;}
+  .onboarding-dot{width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.25);}
+  .onboarding-dot.active{background:var(--brass); transform:scale(1.25);}
+  #onboardingActions{display:flex; gap:10px; justify-content:center; margin-top:14px;}
+  #onboardingActions button{min-width:120px;}
+  #recordStatus{display:none; align-items:center; gap:8px; font-weight:700; color:#ff6b6b;}
+  #recordStatus.on{display:flex;}
+  #recordStatus .blink{width:10px;height:10px;border-radius:50%;background:#ff4d4d;animation:recBlink 1s infinite;}
+  @keyframes recBlink{50%{opacity:.2;}}
+  #recordTimer{font-variant-numeric:tabular-nums;}
+  #playlistIO{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;}
+  #playlistIO button{flex:1; min-width:110px; font-size:12px; padding:7px 9px;}
 </style>
 </head>
 <body>
@@ -541,6 +578,19 @@
 </div>
 <div id="floatSettings" title="Settings">⚙</div>
 
+<div id="onboardingModal">
+  <div id="onboardingCard">
+    <div id="onboardingIcon">🎹</div>
+    <div id="onboardingTitle"></div>
+    <div id="onboardingBody"></div>
+    <div id="onboardingDots"></div>
+    <div id="onboardingActions">
+      <button id="onboardingSkip" data-i18n="onboardingSkip">Omitir</button>
+      <button id="onboardingNext" class="primary" data-i18n="onboardingNext">Siguiente</button>
+    </div>
+  </div>
+</div>
+
 <div id="modePromptModal">
   <div id="modePromptCard">
     <h3 data-i18n="modePromptTitle">How do you want to use this MIDI?</h3>
@@ -585,6 +635,11 @@
     <span data-i18n="toastDuration">Notice duration (seconds)</span>
     <input type="range" id="toastDurationInput" min="1" max="15" value="5">
     <span class="value" id="toastDurationVal">5s</span>
+  </div>
+  <div class="subtle-field">
+    <span data-i18n="sectionUtilities">Utilidades</span>
+    <button id="btnReporte" style="align-self:flex-start;" data-i18n="btnReport">Generar reporte TXT</button>
+    <button id="btnRestartTour" style="align-self:flex-start;" data-i18n="tourRestart">Volver a ver el tour</button>
   </div>
 
   <h2 data-i18n="sectionMode">Usage mode</h2>
@@ -668,6 +723,12 @@
   <h2 data-i18n="sectionPlaylist">Canciones cargadas</h2>
   <div style="font-size:11px; color:var(--ivory-dim); margin-bottom:6px;" data-i18n="playlistHint">Toca una canción para cargarla. Reordena con ▲▼ o arrastra; quita con ✕.</div>
   <div id="playlistContainer"></div>
+  <div id="playlistIO">
+    <button id="btnPlaylistExport" data-i18n="playlistExport">Exportar lista (JSON)</button>
+    <button id="btnPlaylistImport" data-i18n="playlistImport">Importar lista (JSON)</button>
+    <input type="file" id="playlistImportFile" accept="application/json,.json" style="display:none;">
+  </div>
+  <div style="font-size:11px; color:var(--ivory-dim); margin-top:6px;" data-i18n="playlistPersistHint">La lista se guarda automáticamente en este navegador.</div>
 
     </div>
   </div>
@@ -796,6 +857,27 @@
 
     </div>
   </div>
+  <div class="settings-group" data-group="export">
+    <button class="group-header" data-group-toggle="export"><span class="group-icon">🎬</span><span data-i18n="groupExport">Exportar vídeo</span><span class="group-icon">🎬</span><span class="group-chevron">▸</span></button>
+    <div class="group-body" id="groupBody-export">
+  <h2 data-i18n="sectionExportVideo">Grabar interpretación</h2>
+  <div style="font-size:11px; color:var(--ivory-dim); margin-bottom:8px;" data-i18n="exportVideoHint">Graba partitura, rollo y teclado con el audio del sintetizador. Activa la partitura antes de grabar si quieres verla en el vídeo.</div>
+  <div class="subtle-field">
+    <span data-i18n="recordPreset">Formato</span>
+    <select id="recordPresetSelect">
+      <option value="yt4k">YouTube 4K (16:9)</option>
+      <option value="yt1080" selected>YouTube 1080p (16:9)</option>
+      <option value="shorts">TikTok / Reels / Shorts (9:16)</option>
+      <option value="square">Instagram (1:1)</option>
+      <option value="twitter">Twitter / X (16:9)</option>
+    </select>
+  </div>
+  <div class="subtle-field">
+    <button id="btnRecord" data-i18n="recStart">⏺ Grabar</button>
+    <span id="recordStatus"><span class="blink"></span><span data-i18n="recording">GRABANDO</span> <span id="recordTimer">00:00</span></span>
+  </div>
+    </div>
+  </div>
   <div class="settings-group" data-group="audio">
     <button class="group-header" data-group-toggle="audio"><span class="group-icon">🔊</span><span data-i18n="groupAudio">groupAudio</span><span class="group-icon">🔊</span><span class="group-chevron">▸</span></button>
     <div class="group-body" id="groupBody-audio">
@@ -880,6 +962,30 @@
     <span data-i18n="metronomeBpm">Metronome tempo (BPM)</span>
     <input type="range" id="metroBpm" min="40" max="240" value="120">
     <span class="value" id="metroBpmVal">120 BPM</span>
+  </div>
+
+  <h2 data-i18n="sectionHumanize">Humanización y swing</h2>
+  <div class="flag-row">
+    <div>
+      <div class="label" data-i18n="humanizeEnable">Humanizar la interpretación</div>
+      <div class="desc" data-i18n="humanizeHint">Variación sutil y determinista de tiempo y velocidad; el swing retrasa las notas "entre tiempos".</div>
+    </div>
+    <label class="switch"><input type="checkbox" id="humanizeEnable"><span class="slider"></span></label>
+  </div>
+  <div class="subtle-field">
+    <span data-i18n="humanizeJitterTime">Variación de tiempo (ms)</span>
+    <input type="range" id="humanizeTime" min="0" max="60" value="12">
+    <span class="value" id="humanizeTimeVal">12ms</span>
+  </div>
+  <div class="subtle-field">
+    <span data-i18n="humanizeJitterVel">Variación de velocidad (%)</span>
+    <input type="range" id="humanizeVel" min="0" max="60" value="18">
+    <span class="value" id="humanizeVelVal">18%</span>
+  </div>
+  <div class="subtle-field">
+    <span data-i18n="swingAmount">Swing (%)</span>
+    <input type="range" id="swingAmount" min="0" max="100" value="0">
+    <span class="value" id="swingAmountVal">0%</span>
   </div>
 
   <h2 data-i18n="sectionEQ">Ecualizador</h2>
@@ -1034,7 +1140,25 @@ const TEXT = {
     preloadProgress:"Cargando sonido realista {done}/{total}",
     preloadDone:"Sonido realista listo",
     preloadPartial:"Sonido realista listo ({done}/{total}; el resto usa el sintetizador)",
-    preloadSkipped:"Sin internet: se usará el sintetizador mientras se cargan las muestras"
+    preloadSkipped:"Sin internet: se usará el sintetizador mientras se cargan las muestras",
+    sectionUtilities:"Utilidades", btnReport:"Generar reporte TXT", reportDone:"Reporte generado",
+    tourRestart:"Volver a ver el tour",
+    playlistExport:"Exportar lista (JSON)", playlistImport:"Importar lista (JSON)",
+    playlistPersistHint:"La lista se guarda automáticamente en este navegador.",
+    playlistSaved:"Lista guardada en este navegador", playlistRestored:"Lista restaurada",
+    playlistExported:"Lista exportada", playlistImported:"Lista importada", playlistImportError:"No se pudo importar la lista",
+    sectionHumanize:"Humanización y swing", humanizeEnable:"Humanizar la interpretación",
+    humanizeHint:"Variación sutil y determinista de tiempo y velocidad; el swing retrasa las notas entre tiempos.",
+    humanizeJitterTime:"Variación de tiempo (ms)", humanizeJitterVel:"Variación de velocidad (%)", swingAmount:"Swing (%)",
+    groupExport:"Exportar vídeo", sectionExportVideo:"Grabar interpretación",
+    exportVideoHint:"Graba partitura, rollo y teclado con el audio del sintetizador. Activa la partitura antes de grabar si quieres verla en el vídeo.",
+    recordPreset:"Formato", recStart:"⏺ Grabar", recStop:"⏹ Detener", recording:"GRABANDO",
+    recDone:"Vídeo exportado y descargado", recUnsupported:"Este navegador no permite grabar vídeo",
+    onboardingTitle1:"Bienvenido a MidiMate", onboardingBody1:"Toca el teclado con el ratón, la pantalla o tu teclado de ordenador (A–K). También puedes conectar un teclado MIDI.",
+    onboardingTitle2:"Carga un MIDI", onboardingBody2:"Pulsa «Cargar MIDI» o arrastra un archivo .mid. Puedes cargar varios: se añadirán a la lista de reproducción.",
+    onboardingTitle3:"Elige cómo usarlo", onboardingBody3:"Ver: suenaautomáticamente. Practicar: espera a que toques cada nota. Libre: toca sin partitura cargada.",
+    onboardingTitle4:"Ajustes a tu gusto", onboardingBody4:"Pulsa ⚙ para cambiar tema, sonido, fondo, atajos y mucho más. El botón de reporte está en General.",
+    onboardingNext:"Siguiente", onboardingSkip:"Omitir", onboardingStart:"Empezar"
   },
   en: {
     loadBtn:"Load MIDI", play:"▶ Play", pause:"⏸ Pause", practice:"▶ Practice",
@@ -1142,7 +1266,25 @@ const TEXT = {
     preloadProgress:"Loading realistic sound {done}/{total}",
     preloadDone:"Realistic sound ready",
     preloadPartial:"Realistic sound ready ({done}/{total}; the rest uses the synth)",
-    preloadSkipped:"Offline: the synth will be used while samples load"
+    preloadSkipped:"Offline: the synth will be used while samples load",
+    sectionUtilities:"Utilities", btnReport:"Generate TXT report", reportDone:"Report generated",
+    tourRestart:"Replay tour",
+    playlistExport:"Export playlist (JSON)", playlistImport:"Import playlist (JSON)",
+    playlistPersistHint:"The playlist is saved automatically in this browser.",
+    playlistSaved:"Playlist saved in this browser", playlistRestored:"Playlist restored",
+    playlistExported:"Playlist exported", playlistImported:"Playlist imported", playlistImportError:"Could not import the playlist",
+    sectionHumanize:"Humanize & swing", humanizeEnable:"Humanize the performance",
+    humanizeHint:"Subtle deterministic variation in timing and velocity; swing delays off-beat notes.",
+    humanizeJitterTime:"Timing variation (ms)", humanizeJitterVel:"Velocity variation (%)", swingAmount:"Swing (%)",
+    groupExport:"Export video", sectionExportVideo:"Record performance",
+    exportVideoHint:"Records staff, falling notes and keyboard with the synth audio. Enable the staff before recording if you want it in the video.",
+    recordPreset:"Format", recStart:"⏺ Record", recStop:"⏹ Stop", recording:"RECORDING",
+    recDone:"Video exported and downloaded", recUnsupported:"This browser cannot record video",
+    onboardingTitle1:"Welcome to MidiMate", onboardingBody1:"Play with the mouse, touch screen or computer keyboard (A–K). You can also connect a MIDI keyboard.",
+    onboardingTitle2:"Load a MIDI", onboardingBody2:"Click Load MIDI or drag a .mid file. You can load several: they will be added to the playlist.",
+    onboardingTitle3:"Choose how to use it", onboardingBody3:"Watch: plays automatically. Practice: waits for you to play each note. Free: play with no song loaded.",
+    onboardingTitle4:"Tune the settings", onboardingBody4:"Click ⚙ to change theme, sound, background, shortcuts and more. The report button is under General.",
+    onboardingNext:"Next", onboardingSkip:"Skip", onboardingStart:"Start"
   }
 };
 function t(key){ return (TEXT[CFG.language] && TEXT[CFG.language][key]) || key; }
@@ -1175,7 +1317,7 @@ const DEFAULTS = {
   freeModeDisplay:'text', // 'text' | 'staff'
   countIn:{enabled:true, audio:true},
   mouseHideDelay:2.5,
-  shortcuts:{playPause:'space', mute:'m', seekBack:'arrowleft', seekFwd:'arrowright', fullscreen:'l', sustainToggle:'p', openFile:'o', volUp:']', volDown:'[', obsClean:'k', mini:'n'},
+  shortcuts:{playPause:'space', mute:'m', seekBack:'arrowleft', seekFwd:'arrowright', fullscreen:'l', sustainToggle:'p', openFile:'o', volUp:']', volDown:'[', obsClean:'c', mini:'n'},
   eq:{low:0, mid:0, high:0, preset:'flat'},
   announce:{enabled:true, text:'', font:'display', size:32, color:'#f2ead9'},
   staffColors:{noteColor:'#EEE9D9', bgColor:'#292F2B'},
@@ -1199,6 +1341,8 @@ const DEFAULTS = {
   staffHeight:280,
   synth:{preset:'piano', sampleDataUrl:null, sampleBaseNote:60},
   metronome:{enabled:false, bpm:120},
+  humanize:{enabled:false, jitterTime:12, jitterVel:18},
+  swing:{amount:0},
   keymap:{...DEFAULT_KEYMAP}
 };
 const FLAG_META = {
@@ -1226,10 +1370,10 @@ function loadConfig(){
     const merged = structuredCloneSafe(DEFAULTS);
     if (!raw) return merged;
     const saved = JSON.parse(raw);
-    if (saved.language) merged.language = saved.language;
+    if (saved.language && TEXT[saved.language]) merged.language = saved.language;
     if (saved.drawerLayout) merged.drawerLayout = saved.drawerLayout;
-    if (saved.toastDuration) merged.toastDuration = saved.toastDuration;
-    if (saved.volume != null) merged.volume = saved.volume;
+    if (typeof saved.toastDuration === 'number' && isFinite(saved.toastDuration) && saved.toastDuration > 0) merged.toastDuration = saved.toastDuration;
+    if (typeof saved.volume === 'number' && isFinite(saved.volume)) merged.volume = Math.max(0, Math.min(1, saved.volume));
     if (saved.noteNaming) merged.noteNaming = saved.noteNaming;
     if (saved.theme){
       // migración de los temas viejos ('night'/'day') a los nuevos
@@ -1241,8 +1385,9 @@ function loadConfig(){
     if (saved.freeModeDisplay) merged.freeModeDisplay = saved.freeModeDisplay;
     Object.assign(merged.countIn, saved.countIn||{});
     Object.assign(merged.announce, saved.announce||{});
-    if (saved.mouseHideDelay) merged.mouseHideDelay = saved.mouseHideDelay;
+    if (typeof saved.mouseHideDelay === 'number' && isFinite(saved.mouseHideDelay) && saved.mouseHideDelay > 0) merged.mouseHideDelay = saved.mouseHideDelay;
     Object.assign(merged.shortcuts, saved.shortcuts||{});
+    if (merged.shortcuts.obsClean === 'k') merged.shortcuts.obsClean = 'c';
     Object.assign(merged.eq, saved.eq||{});
     Object.assign(merged.staffColors, saved.staffColors||{});
     if (saved.settingsBgColor) merged.settingsBgColor = saved.settingsBgColor;
@@ -1258,15 +1403,17 @@ function loadConfig(){
     if (saved.keySkin) merged.keySkin = saved.keySkin;
     if (saved.tileSkin) merged.tileSkin = saved.tileSkin;
     if (saved.harmonizePalette) merged.harmonizePalette = saved.harmonizePalette;
-    if (saved.bassAmount!=null) merged.bassAmount = saved.bassAmount;
+    if (typeof saved.bassAmount === 'number' && isFinite(saved.bassAmount)) merged.bassAmount = Math.max(0, Math.min(2, saved.bassAmount));
     Object.assign(merged.realisticAudio, saved.realisticAudio||{});
     if (saved.fitImageOnLoad!=null) merged.fitImageOnLoad = saved.fitImageOnLoad;
     Object.assign(merged.miniPlayer, saved.miniPlayer||{});
     if (saved.visibleKeyCount) merged.visibleKeyCount = saved.visibleKeyCount;
-    if (saved.staffHeight) merged.staffHeight = saved.staffHeight;
+    if (typeof saved.staffHeight === 'number' && isFinite(saved.staffHeight) && saved.staffHeight > 0) merged.staffHeight = saved.staffHeight;
     if (saved.keyFxStyle) merged.keyFxStyle = saved.keyFxStyle;
     Object.assign(merged.synth, saved.synth||{});
     Object.assign(merged.metronome, saved.metronome||{});
+    Object.assign(merged.humanize, saved.humanize||{});
+    Object.assign(merged.swing, saved.swing||{});
     if (saved.keymap) merged.keymap = saved.keymap;
     return merged;
   }catch(e){ return structuredCloneSafe(DEFAULTS); }
@@ -1285,6 +1432,68 @@ function saveConfig(){
    2. TOAST — aviso temporal configurable
 --------------------------------------------------------- */
 let toastTimer = null;
+/* --- Registro global de errores y reporte TXT (paridad con MidiMate) --- */
+const ERROR_LOG = [];
+let lastErrorToastAt = 0;
+function pushAppError(message, detail){
+  ERROR_LOG.push({time:new Date().toISOString(), message:String(message||'Error desconocido'), detail:detail||''});
+  if (ERROR_LOG.length>30) ERROR_LOG.shift();
+  console.error('[MidiMate]', message, detail||'');
+  const now=Date.now();
+  if (now-lastErrorToastAt>4000){
+    lastErrorToastAt=now;
+    try{ showToast('⚠️ Algo falló. Si la app deja de responder, recarga (F5). Puedes generar un reporte en Ajustes → General.'); }catch(e){}
+  }
+}
+window.addEventListener('error', e=> pushAppError(e.message||(e.error&&e.error.message), (e.error&&e.error.stack)||(e.filename?e.filename+':'+e.lineno:'')));
+window.addEventListener('unhandledrejection', e=>{ const r=e.reason; pushAppError((r&&r.message)||String(r), r&&r.stack); });
+function downloadReport(){
+  const lines=[];
+  lines.push('=== REPORTE DE FUNCIONES DE LA APP ===');
+  lines.push('Generado: '+new Date().toLocaleString());
+  lines.push('Modo: '+(typeof appMode!=='undefined'?appMode:'free'));
+  lines.push('');
+  lines.push('=== ESTADO ACTUAL DE LA APP ===');
+  lines.push('AudioContext: '+(actx?actx.state:'N/A')+'  sampleRate: '+(actx?actx.sampleRate:'N/A')+' Hz');
+  lines.push('Archivo: '+(song.fileName||'(ninguno)'));
+  lines.push('Duración: '+formatTime(song.duration||0));
+  lines.push('BPM: '+(song.bpm||120));
+  lines.push('Notas: '+(song.notes?song.notes.length:0));
+  lines.push('Cursor: '+formatTime(song.cursorTime||0));
+  lines.push('Velocidad: '+Math.round((song.speed||1)*100)+'%');
+  lines.push('Volumen: '+Math.round(CFG.volume*100)+'%');
+  lines.push('Playlist: '+playlist.length+' elementos (índice '+playlistIdx+')');
+  lines.push('Idioma: '+CFG.language+' · Tema: '+CFG.theme+' · Color: '+CFG.colorTheme);
+  lines.push('Web MIDI disponible: '+(navigator.requestMIDIAccess?'Sí':'No'));
+  lines.push('Humanizar: '+(CFG.humanize.enabled?'Sí':'No')+' · Swing: '+CFG.swing.amount+'%');
+  lines.push('Muestras realistas: '+(CFG.realisticAudio.enabled?'Sí':'No'));
+  lines.push('');
+  lines.push('=== ERROR LOG (sesión actual) ===');
+  if (!ERROR_LOG.length) lines.push('(sin errores registrados)');
+  else ERROR_LOG.forEach(e=>{ lines.push('['+e.time+'] '+e.message+(e.detail?'\n    '+e.detail:'')); });
+  lines.push('');
+  lines.push('=== CATÁLOGO DE FUNCIONES ===');
+  [
+    'Entrada: teclado PC remapeable, ratón, multitáctil, WebMIDI, pedal CC64/Shift',
+    'MIDI: parser SMF (tempo variable, running status), program change, pistas',
+    'Reproducción: play/pausa/stop/seek/loop/velocidad, cuenta atrás, metrónomo',
+    'Audio: sintetizador ~30 presets, muestras FluidR3, precarga, EQ, compresor, limitador',
+    'Práctica: auto-play por pista, seguimiento, precisión %',
+    'Visualización: roll, pentagrama, acordes, skins, efectos de tecla, fondos 3 capas',
+    'Interfaz: 6 grupos de ajustes con color, 4 temas, i18n ES/EN, mini-reproductor, modo OBS',
+    'Utilidades: reporte TXT, tour de bienvenida, playlist persistente e importable, grabación de vídeo'
+  ].forEach(x=>lines.push('  '+x));
+  lines.push('');
+  lines.push('=== FIN DEL REPORTE ===');
+  const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url;
+  a.download='reporte_midimate_'+new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)+'.txt';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),15000);
+  showToast(t('reportDone'));
+}
+
 function showToast(msg){
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -1565,7 +1774,24 @@ function harmonizeWithImage(){
   img.src = src;
 }
 function applySettingsBg(){
-  document.getElementById('drawer').style.background = CFG.settingsBgColor;
+  const drawer = document.getElementById('drawer');
+  drawer.style.background = CFG.settingsBgColor;
+  /* Tinta de contraste para los títulos de categoría: se calcula desde el fondo REAL
+     del panel (también si el usuario elige un color personalizado) y se mezcla con
+     el color propio de cada grupo en CSS. Así el rótulo nunca choca con el tema. */
+  const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec((CFG.settingsBgColor||'').trim());
+  let lum = 0;
+  if (m){
+    let h = m[1];
+    if (h.length === 3) h = h.split('').map(c=>c+c).join('');
+    const lin = [0,2,4].map(i=>{
+      const v = parseInt(h.slice(i, i+2), 16)/255;
+      return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
+    });
+    lum = 0.2126*lin[0] + 0.7152*lin[1] + 0.0722*lin[2];
+  }
+  drawer.style.setProperty('--group-ink',  lum > 0.45 ? '#2E2822' : '#F3ECDC');
+  drawer.style.setProperty('--group-mix',  lum > 0.45 ? '40%' : '64%');
 }
 function applyPanelColor(){
   document.documentElement.style.setProperty('--bg-panel-2', CFG.panelColor);
@@ -1802,8 +2028,12 @@ document.getElementById('announceColorInput').addEventListener('input', e=>{
    6. PARSER DE ARCHIVOS MIDI
 --------------------------------------------------------- */
 function readVarLen(bytes, offset){
-  let value = 0, b;
-  do{ b = bytes[offset++]; value = (value << 7) | (b & 0x7f); } while (b & 0x80);
+  let value = 0, b, count = 0;
+  do{
+    if (offset >= bytes.length || count >= 4) throw new Error('Longitud variable MIDI invalida');
+    b = bytes[offset++]; value = (value << 7) | (b & 0x7f); count++;
+  } while (b & 0x80 && count < 4);
+  if (b & 0x80) throw new Error('Longitud variable MIDI invalida (5 bytes)');
   return {value, offset};
 }
 function parseMidi(buffer){
@@ -1814,6 +2044,7 @@ function parseMidi(buffer){
   function u16(){ const v=(bytes[offset]<<8)|bytes[offset+1]; offset+=2; return v; }
   if (str(4) !== 'MThd') throw new Error('No es un archivo MIDI válido');
   const headerLen = u32();
+  if (headerLen < 6 || offset + headerLen - 6 > bytes.length) throw new Error('Cabecera MIDI truncada');
   const format = u16(); const ntrks = u16(); const division = u16();
   offset += (headerLen - 6);
   const ticksPerBeat = division & 0x7fff;
@@ -1821,10 +2052,12 @@ function parseMidi(buffer){
   for (let t=0; t<ntrks; t++){
     if (str(4) !== 'MTrk') throw new Error('Track MIDI corrupto');
     const trackLen = u32();
+    if (offset + trackLen > bytes.length) throw new Error('Track MIDI truncado');
     const trackEnd = offset + trackLen;
     const events = [];
     let runningStatus = null;
     while (offset < trackEnd){
+      if (bytes[offset] === undefined) break;
       const dt = readVarLen(bytes, offset); offset = dt.offset;
       let status = bytes[offset];
       if (status < 0x80){ status = runningStatus; } else { offset++; runningStatus = status; }
@@ -1972,14 +2205,9 @@ function programToInstrumentName(prog){
 /* Extrae de la pista parsed la lista de programas (instrumentos) declarados. */
 function extractProgramsFromTrack(events){
   const progs = []; // {channel, prog, tick}
-  let runningStatus = null;
   for (const ev of events){
-    const status = ev.type === undefined ? null : null;
-    if (ev.tipo === 'prog' || ev.type === 0xC0){
-      progs.push({channel: ev.channel, prog: ev.d1, tick: ev.tick});
-    }
+    if (ev.isProgramChange) progs.push({channel: ev.channel, prog: ev.d1, tick: ev.tick});
   }
-  // alternativa: escanear el array original si se pasa tipo simplificado
   return progs;
 }
 
@@ -1989,17 +2217,15 @@ function extractProgramsFromTrack(events){
 const song = { notes: [], duration: 0, playing: false, cursorTime: 0, lastFrameTs: null, speed: 1.0, pendingGate: null, bpm: 120, countIn: null, fileName: null };
 let keyboardRange = {lo:36, hi:96};
 function applyKeyboardRange(){
+  let minNote = 127, maxNote = 0;
+  for (const nt of song.notes){ if (nt.note < minNote) minNote = nt.note; if (nt.note > maxNote) maxNote = nt.note; }
   if (CFG.visibleKeyCount === 'auto'){
     if (song.notes.length){
-      const minN = Math.min(...song.notes.map(n=>n.note));
-      const maxN = Math.max(...song.notes.map(n=>n.note));
-      keyboardRange = {lo: Math.max(21, minN-1), hi: Math.min(108, maxN+1)};
+      keyboardRange = {lo: Math.max(21, minNote-1), hi: Math.min(108, maxNote+1)};
     }
   } else {
     const count = +CFG.visibleKeyCount;
-    const center = song.notes.length
-      ? Math.round((Math.min(...song.notes.map(n=>n.note)) + Math.max(...song.notes.map(n=>n.note)))/2)
-      : 60;
+    const center = song.notes.length ? Math.round((minNote + maxNote)/2) : 60;
     let lo = Math.max(21, center - Math.floor(count/2));
     let hi = Math.min(108, lo + count - 1);
     lo = Math.max(21, hi - count + 1);
@@ -2014,6 +2240,11 @@ const hitFeedback = new Map();
 let accuracy = {hits:0, total:0};
 let trackSettings = {};   // {trackIdx: {preset, auto}} — multi-instrumento por pista
 let prevCursorTime = 0;   // for the auto-playback scheduler
+const SCHED_EPS = 1e-4;   // offset minimo para incluir notas en t=0 tras reinicio/seek
+let schedPendingStart = false; // se consume en el primer frame con reproduccion activa
+let playToken = 0;
+function bumpPlayToken(){ return ++playToken; }
+function playTokenIsCurrent(tok){ return tok === playToken; }
 let keyEffects = [];      // efectos visuales al tocar una tecla
 let appMode = 'free';     // 'free' | 'watch' | 'practice'
 let freeNotes = [];       // {note,start,end} — barras que nacen del teclado en modo Libre
@@ -2037,7 +2268,8 @@ document.querySelectorAll('[data-mode-btn]').forEach(btn=>{
   btn.addEventListener('click', ()=>{ appMode = btn.dataset.modeBtn; applyMode(); });
 });
 function resyncAutoPlayback(){
-  prevCursorTime = song.cursorTime;
+  prevCursorTime = song.cursorTime - SCHED_EPS;
+  schedPendingStart = true;
   autoVoices.forEach((v,k)=>releaseVoice(autoVoices,k));
 }
 function silenceAll(){
@@ -2046,7 +2278,8 @@ function silenceAll(){
   pressedKeys.clear();
   sustainedNotes.clear();
   autoPressedNotes.clear();
-  prevCursorTime = song.cursorTime;
+  prevCursorTime = song.cursorTime - SCHED_EPS;
+  schedPendingStart = true;
 }
 function buildTracksPanel(){
   const list = document.getElementById('tracksList');
@@ -2240,18 +2473,25 @@ function midiNoteToSfName(note){
   const octave = Math.floor(note/12)-1;
   return names[note%12]+octave;
 }
+const realisticPending = Object.create(null);
+let activePreloadAbort = null;
 function tryLoadRealisticSample(preset, note){
   const instrument = REALISTIC_MAP[preset];
   if (!instrument) return null;
   const key = instrument+'_'+note;
   const cached = realisticCache[key];
   if (cached) return cached;
+  if (realisticPending[key]) return 'loading';
   realisticCache[key] = 'loading';
   const url = `https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/${instrument}-mp3/${midiNoteToSfName(note)}.mp3`;
-  fetch(url).then(r=>{ if (!r.ok) throw new Error('http'); return r.arrayBuffer(); })
+  const p = fetch(url, {signal: activePreloadAbort ? activePreloadAbort.signal : undefined})
+    .then(r=>{ if (!r.ok) throw new Error('http'); return r.arrayBuffer(); })
     .then(buf=>actx.decodeAudioData(buf))
     .then(decoded=>{ realisticCache[key] = normalizeSample(decoded); })
-    .catch(()=>{ realisticCache[key] = 'error'; });
+    .catch(()=>{ if (realisticCache[key] === 'loading') delete realisticCache[key]; });
+  realisticPending[key] = p;
+  const cleanup = ()=>{ if (realisticPending[key] === p) delete realisticPending[key]; };
+  p.then(cleanup, cleanup);
   return 'loading';
 }
 
@@ -2277,6 +2517,9 @@ function fillTpl(key, done, total){ return t(key).replace('{done}', done).replac
 async function preloadRealisticForSong(){
   if (!CFG.realisticAudio.enabled) return;
   const runId = ++preloadRunId;                 // invalida cualquier corrida previa
+  if (activePreloadAbort) activePreloadAbort.abort();
+  const controller = new AbortController();
+  activePreloadAbort = controller;
   const seen = new Set(), jobs = [];
   song.notes.forEach(n=>{
     const cfg = trackSettings[n.track];
@@ -2301,13 +2544,21 @@ async function preloadRealisticForSong(){
       const cached = realisticCache[job.key];
       if (cached && cached !== 'loading' && cached !== 'error'){ done++; ok++; continue; }
       if (cached === 'error'){ done++; failed++; continue; }
+      let p = realisticPending[job.key];
+      if (!p){
+        p = (async()=>{
+          const r = await fetch(base + job.instrument + '-mp3/' + midiNoteToSfName(job.note) + '.mp3', {signal: controller.signal});
+          if (!r.ok) throw new Error('http '+r.status);
+          const decoded = await actx.decodeAudioData(await r.arrayBuffer());
+          return normalizeSample(decoded);
+        })();
+        realisticPending[job.key] = p;
+        const cleanup = ()=>{ if (realisticPending[job.key] === p) delete realisticPending[job.key]; };
+        p.then(cleanup, cleanup);
+      }
       realisticCache[job.key] = 'loading';
-      try{
-        const r = await fetch(base + job.instrument + '-mp3/' + midiNoteToSfName(job.note) + '.mp3');
-        if (!r.ok) throw new Error('http '+r.status);
-        const decoded = await actx.decodeAudioData(await r.arrayBuffer());
-        realisticCache[job.key] = normalizeSample(decoded); ok++;
-      }catch(e){ realisticCache[job.key] = 'error'; failed++; }
+      try{ realisticCache[job.key] = await p; ok++; }
+      catch(e){ if (realisticCache[job.key] === 'loading') delete realisticCache[job.key]; failed++; }
       done++;
       if (uiShown && runId === preloadRunId) setPreloadUI(true, fillTpl('preloadProgress', done, jobs.length), false);
     }
@@ -2946,32 +3197,29 @@ function noteAtPoint(px, py){
   }
   return null;
 }
-let mouseNote = null;
 function pointerNoteHandler(down){
   return (e)=>{
     if (!CFG.flags.virtualKeyboardClicks.value) return;
-    if (down) {
-      const rect = keysCanvas.getBoundingClientRect();
-      const cx = (e.touches?e.touches[0].clientX:e.clientX) - rect.left;
-      const cy = (e.touches?e.touches[0].clientY:e.clientY) - rect.top;
-      const note = noteAtPoint(cx*devicePixelRatio, cy*devicePixelRatio);
-      if (note==null) return;
-      if (!pressedKeys.has(note)) { handleNoteOn(note, 100); mouseNote = note; }
-    } else if (mouseNote != null) {
-      handleNoteOff(mouseNote); mouseNote = null;
-    }
+    const rect = keysCanvas.getBoundingClientRect();
+    const cx = (e.touches?e.touches[0].clientX:e.clientX) - rect.left;
+    const cy = (e.touches?e.touches[0].clientY:e.clientY) - rect.top;
+    const hitScale = Math.max(devicePixelRatio, 1) * 2;
+    const note = noteAtPoint(cx*hitScale, cy*hitScale);
+    if (note==null) return;
+    if (down) handleNoteOn(note, 100); else handleNoteOff(note);
   };
 }
 keysCanvas.addEventListener('mousedown', pointerNoteHandler(true));
-window.addEventListener('mouseup', pointerNoteHandler(false));
-keysCanvas.addEventListener('mouseleave', ()=>{ if (mouseNote!=null){ handleNoteOff(mouseNote); mouseNote=null; } });
+keysCanvas.addEventListener('mouseup', pointerNoteHandler(false));
+keysCanvas.addEventListener('mouseleave', ()=>{ pressedKeys.forEach(n=>handleNoteOff(n)); });
 
 /* --- Soporte táctil (móvil/tablet) con MULTITOQUE: cada dedo toca una tecla --- */
 const touchNotes = new Map();  // identifier -> nota
 function touchNoteAt(t){
   const rect = keysCanvas.getBoundingClientRect();
-  const cx = (t.clientX - rect.left) * devicePixelRatio;
-  const cy = (t.clientY - rect.top) * devicePixelRatio;
+  const hitScale = Math.max(devicePixelRatio, 1) * 2;
+  const cx = (t.clientX - rect.left) * hitScale;
+  const cy = (t.clientY - rect.top) * hitScale;
   return noteAtPoint(cx, cy);
 }
 keysCanvas.addEventListener('touchstart', (e)=>{
@@ -3639,9 +3887,6 @@ function normalizeKey(e){
   if (e.code === 'Space') return 'space';
   if (e.key === 'ArrowLeft') return 'arrowleft';
   if (e.key === 'ArrowRight') return 'arrowright';
-  if (e.code && e.code.startsWith('Key')) return e.code.slice(3).toLowerCase();
-  if (e.code === 'Semicolon') return ';';
-  if (e.code === 'Quote') return "'";
   return e.key.toLowerCase();
 }
 window.addEventListener('keydown', e=>{
@@ -3683,7 +3928,7 @@ window.addEventListener('keydown', e=>{
   }
 
   if (e.ctrlKey || e.metaKey || e.altKey) return; // nunca disparar notas con combinaciones
-  const k = normalizeKey(e);
+  const k = e.key.toLowerCase();
   if (listeningForNote != null){
     Object.keys(CFG.keymap).forEach(pk=>{ if (CFG.keymap[pk]===listeningForNote) delete CFG.keymap[pk]; });
     CFG.keymap[k] = listeningForNote;
@@ -3699,7 +3944,7 @@ window.addEventListener('keyup', e=>{
     if (!pedalIsDown()) releaseSustainedNotes();
     return;
   }
-  const k = normalizeKey(e);
+  const k = e.key.toLowerCase();
   if (CFG.keymap[k] != null) handleNoteOff(CFG.keymap[k]);
 });
 
@@ -3720,11 +3965,17 @@ function loadMidiFile(file){
     try{
       const parsed = parseMidi(reader.result);
       const notes = midiToNotes(parsed);
-      const duration = Math.max(...notes.map(n=>n.end), 0);
+      const programs = parsed.tracks.map(trk=>{
+        const ps = extractProgramsFromTrack(trk);
+        return ps.length ? ps[ps.length-1].prog : null;
+      });
+      let duration = 0;
+      for (const nt of notes) if (nt.end > duration) duration = nt.end;
       let initialTempo = 500000;
       outer: for (const trk of parsed.tracks){ for (const ev of trk){ if (ev.tempo!==undefined){ initialTempo = ev.tempo; break outer; } } }
       const bpm = 60000000/initialTempo;
-      playlist.push({file, notes, duration, bpm, fileName: file.name});
+      playlist.push({file, notes, duration, bpm, fileName: file.name, programs});
+      savePlaylistStorage();
       // la primera canción se carga; las siguientes se AÑADEN a la cola
       if (playlist.length === 1){
         loadPlaylistAt(0, /*autoPlay*/ false);
@@ -3741,6 +3992,7 @@ function loadMidiFile(file){
   reader.readAsArrayBuffer(file);
 }
 function loadPlaylistAt(idx, autoPlay){
+  bumpPlayToken();
   if (!playlist.length) return;
   playlistIdx = ((idx % playlist.length) + playlist.length) % playlist.length;
   const entry = playlist[playlistIdx];
@@ -3750,12 +4002,14 @@ function loadPlaylistAt(idx, autoPlay){
   song.cursorTime = 0;
   accuracy = {hits:0, total:0};
   song.fileName = entry.fileName;
-  prevCursorTime = 0;
+  prevCursorTime = -SCHED_EPS;
+  schedPendingStart = true;
   autoVoices.forEach((v,k)=>releaseVoice(autoVoices,k));
   // pistas
   trackSettings = {};
   [...new Set(song.notes.map(n=>n.track))].sort((a,b)=>a-b).forEach(idx=>{
-    trackSettings[idx] = {preset:'piano', auto:false, visible:true, disabled:false};
+    const prog = entry.programs && entry.programs[idx];
+    trackSettings[idx] = {preset: prog!=null ? programToPresetName(prog).preset : 'piano', auto:false, visible:true, disabled:false, program: prog};
   });
   buildTracksPanel();
   if (song.notes.length) applyKeyboardRange();
@@ -3817,12 +4071,14 @@ function movePlaylistItem(i, dir){
   const j = i + dir;
   if (j < 0 || j >= playlist.length) return;
   [playlist[i], playlist[j]] = [playlist[j], playlist[i]];
+  savePlaylistStorage();
   if (playlistIdx === i) playlistIdx = j;
   else if (playlistIdx === j) playlistIdx = i;
   buildPlaylistPanel(); updatePlaylistBadge(); refreshPlaylistButtons(); updatePlaylistBadge();
 }
 function removePlaylistItem(i){
   playlist.splice(i, 1);
+  savePlaylistStorage();
   if (!playlist.length){
     playlistIdx = -1;
     song.notes = []; song.duration = 0; song.fileName = null;
@@ -3840,6 +4096,62 @@ function removePlaylistItem(i){
   }
   buildPlaylistPanel(); refreshPlaylistButtons();
 }
+/* --- Playlist persistente y portable (paridad con MidiMate) --- */
+const PLAYLIST_STORAGE_KEY='recital-playlist-v1';
+function playlistSnapshot(){
+  return playlist.map(e=>({fileName:e.fileName, notes:e.notes, duration:e.duration, bpm:e.bpm, programs:e.programs||[]}));
+}
+function savePlaylistStorage(){
+  try{
+    localStorage.setItem(PLAYLIST_STORAGE_KEY, JSON.stringify(playlistSnapshot().slice(-12)));
+  }catch(e){ console.warn('No se pudo guardar la lista de reproducción:',e); }
+}
+function applyPlaylistData(data){
+  if (!Array.isArray(data)) throw new Error('Formato de lista no válido');
+  playlist.length=0; playlistIdx=-1;
+  data.forEach(e=>{
+    if (!e || !Array.isArray(e.notes) || !e.fileName) return;
+    playlist.push({file:null, notes:e.notes, duration:Number(e.duration)||0,
+      bpm:Number(e.bpm)||120, fileName:String(e.fileName), programs:Array.isArray(e.programs)?e.programs:[]});
+  });
+  if (!playlist.length) throw new Error('La lista no contiene canciones válidas');
+  loadPlaylistAt(0,false);
+  buildPlaylistPanel(); updatePlaylistBadge(); refreshPlaylistButtons(); savePlaylistStorage();
+}
+function restorePlaylistStorage(){
+  try{
+    const raw=localStorage.getItem(PLAYLIST_STORAGE_KEY);
+    if (!raw) return false;
+    const data=JSON.parse(raw);
+    if (!Array.isArray(data)||!data.length) return false;
+    applyPlaylistData(data);
+    return true;
+  }catch(e){ console.warn('No se pudo restaurar la lista de reproducción:',e); return false; }
+}
+function exportPlaylistJSON(){
+  try{
+    const blob=new Blob([JSON.stringify({version:1, songs:playlistSnapshot()},null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download='midimate-playlist.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),15000);
+    showToast(t('playlistExported'));
+  }catch(e){ showToast(t('playlistImportError')); }
+}
+function importPlaylistJSON(file){
+  if (!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      applyPlaylistData(Array.isArray(data)?data:(data.songs||[]));
+      showToast(t('playlistImported'));
+    }catch(e){ showToast(t('playlistImportError')+': '+e.message); }
+  };
+  reader.onerror=()=>showToast(t('playlistImportError'));
+  reader.readAsText(file);
+}
+
 function advancePlaylist(){
   if (playlist.length === 0) return;
   const wasLoop = CFG.flags.loopSong.value;
@@ -3881,8 +4193,9 @@ document.getElementById('modePromptWatch').addEventListener('click', ()=>{
   document.getElementById('modePromptModal').classList.remove('open');
 });
 document.getElementById('btnPlay').addEventListener('click', async ()=>{
+  const token = bumpPlayToken();
   if (actx.state === 'suspended') actx.resume();
-  if (song.playing){
+  if (song.playing || song.countIn){
     song.playing = false; song.countIn = null;
     silenceAll();
     updatePlayButtonLabel();
@@ -3902,6 +4215,7 @@ document.getElementById('btnPlay').addEventListener('click', async ()=>{
     btn.disabled = true; btn.textContent = '…';
     try{ await preloadRealisticForSong(); }
     finally{ btn.disabled = false; updatePlayButtonLabel(); }
+    if (!playTokenIsCurrent(token)) return;
   }
   if (appMode!=='free' && song.notes.length && (CFG.announce.enabled || CFG.countIn.enabled)){
     const announceOn = CFG.announce.enabled;
@@ -3942,6 +4256,7 @@ document.getElementById('btnPlay').addEventListener('click', async ()=>{
   resetMouseIdle();
 });
 document.getElementById('btnStop').addEventListener('click', ()=>{
+  bumpPlayToken();
   song.playing = false; song.countIn = null; song.cursorTime = 0; song.pendingGate = null;
   document.getElementById('countInOverlay').classList.add('hidden');
   silenceAll();
@@ -4008,7 +4323,7 @@ function enterFullscreen(){
 }
 function exitFullscreenSafe(){
   const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
-  if (exit) exit.call(document).catch ? exit.call(document).catch(()=>{}) : exit.call(document);
+  if (exit){ try{ const p = exit.call(document); if (p && p.catch) p.catch(()=>{}); }catch(e){} }
 }
 document.getElementById('btnFullscreen').addEventListener('click', ()=>{
   if (!isFullscreen()) enterFullscreen(); else exitFullscreenSafe();
@@ -4134,6 +4449,28 @@ function updateProgressBar(){
   document.getElementById('timeRemaining').textContent = '-'+formatTime(song.duration - song.cursorTime);
 }
 
+/* --- Humanización y swing deterministas (paridad con MidiMate) --- */
+function humanizedJitter(n){
+  if (!CFG.humanize.enabled) return 0;
+  const seed=Math.sin(n.start*12345.678)*10000;
+  return ((seed-Math.floor(seed))*2-1)*(CFG.humanize.jitterTime/1000);
+}
+function humanizedSwing(n){
+  const amount=CFG.swing.amount||0;
+  if (!amount) return 0;
+  const beat=60/(song.bpm||120);
+  const pos=((n.start%beat)+beat)%beat;
+  return (pos>beat*0.25 && pos<beat*0.75) ? (amount/100)*0.035 : 0;
+}
+function humanizedStart(n){ return n.start+humanizedJitter(n)+humanizedSwing(n); }
+function humanizedEnd(n){ return n.end+humanizedJitter(n)+humanizedSwing(n); }
+function humanizedVel(n){
+  if (!CFG.humanize.enabled) return n.velocity;
+  const seed=Math.sin(n.start*54321.987)*10000;
+  const j=((seed-Math.floor(seed))*2-1)*(CFG.humanize.jitterVel/100);
+  return Math.min(127,Math.max(1,Math.round(n.velocity*(1+j))));
+}
+
 /* auto-ocultar el mouse mientras se reproduce */
 let mouseIdleTimer = null;
 function resetMouseIdle(){
@@ -4161,23 +4498,25 @@ function currentGateNotes(tt){
 }
 function scheduleAutoPlayback(){
   if (!song.playing){ prevCursorTime = song.cursorTime; return; }
+  if (schedPendingStart){ schedPendingStart = false; prevCursorTime = song.cursorTime - SCHED_EPS; }
   const from = prevCursorTime, to = song.cursorTime;
-  if (to < from){ prevCursorTime = to; return; } // jump backwards: do not play abruptly, just resync
+  if (to < from){ prevCursorTime = to - SCHED_EPS; return; } // jump backwards: do not play abruptly, just resync
   song.notes.forEach(n=>{
     const cfg = trackSettings[n.track];
     if (cfg && cfg.disabled) return;
     const shouldAuto = appMode==='watch' ? true : (cfg && cfg.auto);
     if (!shouldAuto) return;
     const preset = (cfg && cfg.preset) || 'piano';
-    const key = n.track+'|'+n.note;
-    if (n.start > from && n.start <= to){
-      startAutoVoice(key, preset, n.note, n.velocity);
+    const key = n.track+'|'+n.channel+'|'+n.note;
+    const hStart = humanizedStart(n), hEnd = humanizedEnd(n);
+    if (hStart > from && hStart <= to){
+      startAutoVoice(key, preset, n.note, humanizedVel(n));
       if (!cfg || cfg.visible!==false){
         autoPressedNotes.add(n.note);
         spawnKeyEffect(n.note, currentTheme().played);
       }
     }
-    if (n.end > from && n.end <= to){
+    if (hEnd > from && hEnd <= to){
       stopAutoVoice(key);
       autoPressedNotes.delete(n.note);
     }
@@ -4277,6 +4616,145 @@ function frame(ts){
   requestAnimationFrame(frame);
 }
 
+/* --- Tour de primer arranque (paridad con MidiMate) --- */
+const ONBOARDED_KEY='midimate-onboarded-v1';
+const ONBOARD_STEPS=[
+  {icon:'🎹', title:'onboardingTitle1', body:'onboardingBody1'},
+  {icon:'📂', title:'onboardingTitle2', body:'onboardingBody2'},
+  {icon:'🎯', title:'onboardingTitle3', body:'onboardingBody3'},
+  {icon:'⚙️', title:'onboardingTitle4', body:'onboardingBody4'}
+];
+function initOnboarding(){
+  let seen=false;
+  try{ seen=!!localStorage.getItem(ONBOARDED_KEY); }catch(e){}
+  if (seen) return;
+  const modal=document.getElementById('onboardingModal');
+  const titleEl=document.getElementById('onboardingTitle');
+  const bodyEl=document.getElementById('onboardingBody');
+  const iconEl=document.getElementById('onboardingIcon');
+  const dotsEl=document.getElementById('onboardingDots');
+  const nextBtn=document.getElementById('onboardingNext');
+  const skipBtn=document.getElementById('onboardingSkip');
+  if (!modal||!titleEl||!bodyEl||!nextBtn) return;
+  let step=0;
+  function render(){
+    const s=ONBOARD_STEPS[step];
+    iconEl.textContent=s.icon;
+    titleEl.textContent=t(s.title);
+    bodyEl.textContent=t(s.body);
+    nextBtn.textContent=(step===ONBOARD_STEPS.length-1)?t('onboardingStart'):t('onboardingNext');
+    if (dotsEl) dotsEl.innerHTML=ONBOARD_STEPS.map((_,i)=>'<span class="onboarding-dot'+(i===step?' active':'')+'"></span>').join('');
+  }
+  function finish(){
+    try{ localStorage.setItem(ONBOARDED_KEY,'1'); }catch(e){}
+    modal.classList.remove('open');
+  }
+  nextBtn.addEventListener('click',()=>{ if (step<ONBOARD_STEPS.length-1){ step++; render(); } else finish(); });
+  if (skipBtn) skipBtn.addEventListener('click',finish);
+  render(); modal.classList.add('open');
+}
+
+/* --- Exportación de vídeo (paridad con MidiMate) --- */
+const RECORD_PRESETS={
+  yt4k:{w:3840,h:2160,fps:30}, yt1080:{w:1920,h:1080,fps:30},
+  shorts:{w:1080,h:1920,fps:30}, square:{w:1080,h:1080,fps:30}, twitter:{w:1280,h:720,fps:30}
+};
+const recState={recording:false, recorder:null, chunks:[], raf:null, canvas:null, ctx:null, tap:null, startedAt:0};
+function recMime(){
+  const candidates=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','video/mp4;codecs=avc1,mp4a.40.2','video/mp4'];
+  return candidates.find(c=>window.MediaRecorder&&MediaRecorder.isTypeSupported(c))||'';
+}
+function recLayout(w,h){
+  const headerH=Math.round(h*0.045), vertical=h>w;
+  const staffH=Math.round((h-headerH)*(vertical?0.11:0.16));
+  const keysH=Math.round((h-headerH)*(vertical?0.14:0.17));
+  const rollH=h-headerH-staffH-keysH;
+  return {header:{x:0,y:0,w,h:headerH}, staff:{x:0,y:headerH,w,h:staffH},
+    roll:{x:0,y:headerH+staffH,w,h:rollH}, keys:{x:0,y:headerH+staffH+rollH,w,h:keysH}};
+}
+function recDrawLayer(src,rect,ctx){
+  if (!src||src.width<=0||src.height<=0) return;
+  try{ ctx.drawImage(src,rect.x,rect.y,rect.w,rect.h); }catch(e){}
+}
+function recDrawFrame(rects,preset){
+  if (!recState.recording||!recState.ctx) return;
+  const ctx=recState.ctx;
+  ctx.fillStyle=(CFG.background&&CFG.background.color)||'#000';
+  ctx.fillRect(0,0,preset.w,preset.h);
+  const hd=rects.header;
+  ctx.fillStyle='#15131f'; ctx.fillRect(hd.x,hd.y,hd.w,hd.h);
+  const fs=Math.max(13,Math.round(hd.h*0.55));
+  ctx.fillStyle='#f2ead9'; ctx.font='bold '+fs+'px sans-serif'; ctx.textBaseline='middle'; ctx.textAlign='left';
+  ctx.fillText('♪ MidiMate',hd.x+fs*0.5,hd.y+hd.h/2);
+  const secs=Math.floor((performance.now()-recState.startedAt)/1000);
+  const mm=String(Math.floor(secs/60)).padStart(2,'0'), ss=String(secs%60).padStart(2,'0');
+  ctx.fillStyle='#ff5555'; ctx.textAlign='right';
+  ctx.fillText('● REC '+mm+':'+ss,hd.x+hd.w-fs*0.5,hd.y+hd.h/2);
+  ctx.textAlign='left';
+  const timerEl=document.getElementById('recordTimer'); if (timerEl) timerEl.textContent=mm+':'+ss;
+  recDrawLayer(document.getElementById('staffCanvas'),rects.staff,ctx);
+  recDrawLayer(document.getElementById('rollCanvas'),rects.roll,ctx);
+  recDrawLayer(document.getElementById('keysCanvas'),rects.keys,ctx);
+  recState.raf=requestAnimationFrame(()=>recDrawFrame(rects,preset));
+}
+function recRestoreTap(){
+  if (recState.tap){ try{ masterLimiter.disconnect(recState.tap); }catch(e){} recState.tap=null; }
+}
+function startRecording(presetKey){
+  if (recState.recording) return;
+  const preset=RECORD_PRESETS[presetKey];
+  if (!preset) return;
+  if (!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){ showToast(t('recUnsupported')); return; }
+  const mime=recMime();
+  if (!mime){ showToast(t('recUnsupported')); return; }
+  const rects=recLayout(preset.w,preset.h);
+  const canvas=document.createElement('canvas'); canvas.width=preset.w; canvas.height=preset.h;
+  const ctx=canvas.getContext('2d');
+  const tracks=[...canvas.captureStream(preset.fps).getVideoTracks()];
+  try{
+    recState.tap=actx.createMediaStreamDestination();
+    masterLimiter.connect(recState.tap);
+    tracks.push(...recState.tap.stream.getAudioTracks());
+  }catch(e){ recState.tap=null; }
+  let recorder;
+  try{
+    recorder=new MediaRecorder(new MediaStream(tracks),{mimeType:mime,
+      videoBitsPerSecond:preset.w>=3000?40000000:(preset.w>=1900?16000000:8000000)});
+  }catch(e){ recRestoreTap(); showToast(t('recUnsupported')); return; }
+  recState.recording=true; recState.recorder=recorder; recState.chunks=[];
+  recState.canvas=canvas; recState.ctx=ctx; recState.startedAt=performance.now();
+  recorder.ondataavailable=e=>{ if (e.data&&e.data.size) recState.chunks.push(e.data); };
+  recorder.onstop=()=>{
+    recRestoreTap();
+    const ext=mime.indexOf('mp4')>=0?'mp4':'webm';
+    if (recState.chunks.length){
+      const blob=new Blob(recState.chunks,{type:mime.split(';')[0]});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url;
+      a.download='midimate_'+preset.w+'x'+preset.h+'_'+new Date().toISOString().replace(/[:.]/g,'-').slice(0,19)+'.'+ext;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),15000);
+      showToast(t('recDone'));
+    }
+    recState.chunks=[]; recState.canvas=null; recState.ctx=null;
+    const status=document.getElementById('recordStatus'); if (status) status.classList.remove('on');
+    const btn=document.getElementById('btnRecord'); if (btn) btn.textContent=t('recStart');
+  };
+  recorder.onerror=()=>stopRecording();
+  const status=document.getElementById('recordStatus'); if (status) status.classList.add('on');
+  const btn=document.getElementById('btnRecord'); if (btn) btn.textContent=t('recStop');
+  recorder.start(1000);
+  recDrawFrame(rects,preset);
+}
+function stopRecording(){
+  if (!recState.recording) return;
+  recState.recording=false;
+  if (recState.raf) cancelAnimationFrame(recState.raf);
+  recState.raf=null;
+  if (recState.recorder&&recState.recorder.state!=='inactive') recState.recorder.stop();
+  else recRestoreTap();
+}
+
 /* ---------------------------------------------------------
    INICIO
 --------------------------------------------------------- */
@@ -4355,6 +4833,41 @@ restoreSampleFromConfig();
 document.getElementById('staffWrap').style.height = CFG.staffHeight+'px';
 resizeCanvases();
 setupWebMidi();
+
+/* --- Cableado de las funciones de paridad --- */
+document.getElementById('btnReporte').addEventListener('click', downloadReport);
+document.getElementById('btnRestartTour').addEventListener('click', ()=>{
+  try{ localStorage.removeItem(ONBOARDED_KEY); }catch(e){}
+  initOnboarding();
+});
+document.getElementById('humanizeEnable').checked = CFG.humanize.enabled;
+document.getElementById('humanizeTime').value = CFG.humanize.jitterTime;
+document.getElementById('humanizeVel').value = CFG.humanize.jitterVel;
+document.getElementById('swingAmount').value = CFG.swing.amount;
+document.getElementById('humanizeTimeVal').textContent = CFG.humanize.jitterTime+'ms';
+document.getElementById('humanizeVelVal').textContent = CFG.humanize.jitterVel+'%';
+document.getElementById('swingAmountVal').textContent = CFG.swing.amount+'%';
+document.getElementById('humanizeEnable').addEventListener('change', e=>{ CFG.humanize.enabled=e.target.checked; saveConfig(); });
+document.getElementById('humanizeTime').addEventListener('input', e=>{
+  CFG.humanize.jitterTime=+e.target.value; document.getElementById('humanizeTimeVal').textContent=e.target.value+'ms'; saveConfig();
+});
+document.getElementById('humanizeVel').addEventListener('input', e=>{
+  CFG.humanize.jitterVel=+e.target.value; document.getElementById('humanizeVelVal').textContent=e.target.value+'%'; saveConfig();
+});
+document.getElementById('swingAmount').addEventListener('input', e=>{
+  CFG.swing.amount=+e.target.value; document.getElementById('swingAmountVal').textContent=e.target.value+'%'; saveConfig();
+});
+document.getElementById('btnPlaylistExport').addEventListener('click', exportPlaylistJSON);
+document.getElementById('btnPlaylistImport').addEventListener('click', ()=>document.getElementById('playlistImportFile').click());
+document.getElementById('playlistImportFile').addEventListener('change', e=>{
+  importPlaylistJSON(e.target.files&&e.target.files[0]); e.target.value='';
+});
+document.getElementById('btnRecord').addEventListener('click', ()=>{
+  if (recState.recording) stopRecording();
+  else startRecording(document.getElementById('recordPresetSelect').value);
+});
+if (restorePlaylistStorage()) showToast(t('playlistRestored'));
+initOnboarding();
 requestAnimationFrame(frame);
 
 })();
